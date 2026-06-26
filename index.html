@@ -1,456 +1,668 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BIG DOG — grey-box</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BIG DOG</title>
 <style>
-  html,body{margin:0;height:100%;background:#1b1f24;color:#e8eef3;
-    font-family:ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
-  #wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px}
-  canvas{background:#2a2f36;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);touch-action:none}
-  #hint{font-size:12px;opacity:.6;letter-spacing:.3px}
-  b{color:#fff}
+  html,body{height:100%;margin:0;background:#0d0a22;overflow:hidden;
+    font-family:ui-monospace,Menlo,Consolas,monospace;color:#fff;-webkit-user-select:none;user-select:none}
+  #game{position:fixed;inset:0}
+  canvas{display:block}
+
+  /* ---------- Velion loader (your asset) ---------- */
+  .vl-loading{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;background:radial-gradient(circle at 50% 35%,#181230 0%,#0d0a22 60%,#07050f 100%);
+    transition:opacity .45s ease}
+  .vl-loading.vl-hidden{opacity:0;pointer-events:none}
+  .vl-cham-wrap{position:relative;width:clamp(150px,32vw,240px);min-height:120px}
+  .vl-cham{display:block;width:100%;height:auto}
+  .vl-eyelid{position:absolute;left:23.7%;top:29.2%;width:24%;aspect-ratio:1;
+    transform:translate(-50%,-50%);overflow:visible;pointer-events:none}
+  .vl-lid-path{fill:#23371d;stroke:#101c10;stroke-width:1.2;animation:vlBlink 3.6s ease-in-out infinite}
+  @keyframes vlBlink{
+    0%,86%,100%{d:path("M -50 -50 L 50 -50 L 50 -50 Q 0 -50 -50 -50 Z")}
+    90%,94%{d:path("M -50 -50 L 50 -50 L 50 50 Q 0 72 -50 50 Z")}
+    98%{d:path("M -50 -50 L 50 -50 L 50 -50 Q 0 -50 -50 -50 Z")}}
+  .vl-word{margin-top:22px;font-size:clamp(34px,8vw,52px);font-weight:800;letter-spacing:6px;
+    background:linear-gradient(90deg,#b9f27a,#7ad0ff,#c79bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .vl-sub{margin-top:18px;display:flex;gap:6px}
+  .vl-dot{width:6px;height:6px;border-radius:50%;background:#8d8ac0;animation:vlDot 1.2s ease-in-out infinite}
+  .vl-dot:nth-child(2){animation-delay:.2s}.vl-dot:nth-child(3){animation-delay:.4s}
+  @media (prefers-reduced-motion:reduce){.vl-lid-path,.vl-dot{animation:none}}
+
+  /* ---------- HUD ---------- */
+  #hud{position:fixed;inset:0;pointer-events:none;z-index:50}
+  .top{position:absolute;top:12px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:10px}
+  #timer{font-size:26px;font-weight:700;letter-spacing:1px;text-shadow:0 2px 6px rgba(0,0,0,.6);min-width:78px;text-align:center}
+  .chips{display:flex;gap:8px}
+  .chip{padding:4px 10px;border-radius:14px;font-size:14px;font-weight:700;color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,.45);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+  .bottom{position:absolute;left:16px;bottom:16px;display:flex;align-items:center;gap:14px}
+  .res{display:flex;align-items:center;gap:8px}
+  .lbl{font-size:11px;letter-spacing:1px;opacity:.85}
+  .meter{width:200px;height:16px;border-radius:8px;background:rgba(0,0,0,.45);
+    border:1px solid rgba(255,255,255,.2);overflow:hidden}
+  .meter>i{display:block;height:100%;width:60%;background:#3aa0ff;transition:width .08s linear}
+  #poop{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:#6b3f22}
+  #poop.empty{background:#2a2f36}
+  #vuln{position:absolute;left:0;right:0;top:44%;text-align:center;font-size:20px;font-weight:800;
+    color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.75);display:none}
+  #cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;
+    background:rgba(255,255,255,.85);box-shadow:0 0 0 2px rgba(0,0,0,.35);display:none}
+  #mini{position:absolute;top:12px;right:12px;width:150px;height:150px;border-radius:10px;
+    background:rgba(7,5,15,.55);border:1px solid rgba(255,255,255,.18);box-shadow:0 4px 16px rgba(0,0,0,.4)}
+  #viewtag{position:absolute;right:14px;bottom:16px;font-size:12px;opacity:.7}
+
+  /* ---------- overlays ---------- */
+  .ov{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(7,5,15,.74);text-align:center;cursor:pointer;padding:24px}
+  .ov.hide{display:none}
+  .ov h1{font-size:clamp(40px,9vw,64px);margin:0 0 4px;letter-spacing:3px;
+    background:linear-gradient(90deg,#ffd34d,#ff7eb3,#3aa0ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .ov .tag{opacity:.85;margin:0 0 18px;font-size:15px}
+  .ov p{margin:5px 0;opacity:.92;max-width:560px;line-height:1.5}
+  .keys{margin-top:14px;font-size:13px;opacity:.85;line-height:1.95}
+  .keys b{color:#ffd34d}
+  .cta{margin-top:22px;font-size:18px;font-weight:700;color:#fff;
+    border:2px solid rgba(255,255,255,.6);border-radius:24px;padding:10px 24px}
+  #endstats{font-size:14px;line-height:1.85;opacity:.92;margin-top:8px}
 </style>
 </head>
 <body>
-<div id="wrap">
-  <canvas id="c" width="760" height="820"></canvas>
-  <div id="hint"><b>WASD/Arrows</b> move · hold <b>SPACE</b> pee · <b>P</b> poop (trump) · <b>R</b> restart · <b>Esc</b> pause</div>
+
+<div id="game"></div>
+
+<!-- ===== Velion loader =====
+     Chameleon art loads from velion-cham.png (placed next to this file).
+     To use your original inline data-URI instead, just swap the src on .vl-cham. -->
+<div class="vl-loading" id="loader">
+  <div class="vl-cham-wrap">
+    <img class="vl-cham" src="velion-cham.png" alt="Velion"
+         onerror="this.style.display='none';var e=this.parentNode.querySelector('.vl-eyelid');if(e)e.style.display='none';">
+    <svg class="vl-eyelid" viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs><clipPath id="vlEyeClip"><circle cx="0" cy="0" r="50"/></clipPath></defs>
+      <path class="vl-lid-path" clip-path="url(#vlEyeClip)" d="M -50 -50 L 50 -50 L 50 -50 Q 0 -50 -50 -50 Z"/>
+    </svg>
+  </div>
+  <div class="vl-word">VELION</div>
+  <div class="vl-sub"><div class="vl-dot"></div><div class="vl-dot"></div><div class="vl-dot"></div></div>
 </div>
+
+<!-- ===== HUD ===== -->
+<div id="hud">
+  <div class="top">
+    <div id="timer">2:00</div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="bottom">
+    <div class="res"><span class="lbl">BLADDER</span><div class="meter"><i id="bladder"></i></div></div>
+    <div class="res"><span class="lbl">POOP</span><div id="poop"></div></div>
+  </div>
+  <div id="vuln">VULNERABLE — get home</div>
+  <div id="cross"></div>
+  <canvas id="mini" width="300" height="300"></canvas>
+  <div id="viewtag">3rd person · press C</div>
+</div>
+
+<!-- ===== overlays ===== -->
+<div class="ov" id="startOv">
+  <h1>BIG&nbsp;DOG</h1>
+  <p class="tag">Run the block. Mark your turf. Out-claim the strays before the buzzer.</p>
+  <p>Hold to pee and claim objects. The longer you mark, the harder to steal.
+     Run low and you must trot home to refuel — get caught empty in enemy turf and you're vulnerable.</p>
+  <div class="keys">
+    <b>WASD / Arrows</b> move &nbsp;·&nbsp; <b>Mouse</b> look &nbsp;·&nbsp; <b>Shift</b> sprint<br>
+    <b>Space</b> (or left-click) pee &nbsp;·&nbsp; <b>P</b> power-poop (trump) &nbsp;·&nbsp; <b>C</b> 1st/3rd person
+  </div>
+  <div class="cta">Click to play</div>
+</div>
+
+<div class="ov hide" id="pauseOv">
+  <h1>Paused</h1>
+  <p class="tag">Click to get back out there.</p>
+  <div class="cta">Resume</div>
+</div>
+
+<div class="ov hide" id="endOv">
+  <h1 id="endTitle">Time!</h1>
+  <p class="tag" id="endSub"></p>
+  <div id="endstats"></div>
+  <div class="cta">Click for one more round</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ============================================================
-   BIG DOG — grey-box prototype
-   Single question this answers: is mark/defend/refuel FUN?
-   All feel-numbers live in TUNE. Change them, not the code.
+   BIG DOG — 3D (Three.js r128). Single file, link-to-play.
+   Same loop as the grey-box: mark / defend / refuel.
+   All feel-numbers live in TUNE.
    ============================================================ */
 
 const TUNE = {
-  ROUND_TIME:   120,   // sec. Bible default 3:00; 2:00 here for faster test iterations.
-  FILL_RATE:    25,    // claim/sec added while peeing on own/neutral object
-  DECAY_RATE:   2,     // claim/sec bled from any owned object (keeps map contestable)
-  ERODE_RATE:   20,    // claim/sec removed from an ENEMY object before you can claim it
-  PEE_DRAIN:    13,    // bladder/sec spent while peeing
-  WATER_RATE:   34,    // bladder/sec refilled at home
-  FOOD_TIME:    9,     // sec at home to regain 1 poop charge
-  MOVE_SPEED:   168,   // px/sec
-  VULN_SPEED:   0.55,  // speed multiplier when caught empty in enemy turf
-  POOP_LOCK:    8,     // sec an object is locked from recapture after a poop
-  MARK_RANGE:   40,    // px you must be within to affect an object
-  HOME_RADIUS:  58,    // px refuel zone radius
-  BLADDER_MAX:  100,
-  POOP_MAX:     1,
-  OBJ_PER_BLOCK:4,
+  ROUND_TIME: 120,   // sec
+  FILL: 25,          // claim/sec while peeing on own/neutral object
+  DECAY: 2,          // claim/sec bled from any owned object
+  ERODE: 20,         // claim/sec stripped from an enemy object before you can claim it
+  PEE_DRAIN: 13,     // bladder/sec while peeing
+  WATER: 34,         // bladder/sec refilled at home
+  FOOD_TIME: 9,      // sec at home to regain 1 poop charge
+  POOP_LOCK: 8,      // sec an object is locked from recapture after a poop
+  MARK_RANGE: 5,     // world units you must be within to affect an object
+  HOME_R: 6.5,       // refuel zone radius
+  BLADDER_MAX: 100,
+  POOP_MAX: 1,
+  SPEED: 16,         // units/sec
+  SPRINT: 1.7,
+  VULN_SPEED: 0.55,
+  OBJ_PER_BLOCK: 4,
 };
 
-// ---- colors / owners --------------------------------------------------------
-const C = {
-  bg:'#2a2f36', grid:'#3a414a', street:'#33383f',
-  neutral:'#8a949e', home:'#7a5c3e',
-  you:'#2e86de', ai1:'#e74c3c', ai2:'#e67e22',
-  ink:'#e8eef3', dim:'#9aa6b2'
+const B = 24;                 // block size
+const HALF = B * 1.5;         // map half-extent (36)
+const BOUND = HALF - 1.2;
+
+const OWNER = {
+  you:  { hex: 0x3aa0ff, css: '#3aa0ff', name: 'YOU' },
+  ai1:  { hex: 0xff4d4d, css: '#ff4d4d', name: 'RED' },
+  ai2:  { hex: 0xffa733, css: '#ffa733', name: 'ORANGE' },
+  none: { hex: 0x8a949e, css: '#8a949e', name: 'OPEN' },
 };
-const OWNER_COLOR = { you:C.you, ai1:C.ai1, ai2:C.ai2, null:C.neutral };
-const OWNER_NAME  = { you:'YOU', ai1:'RED', ai2:'ORANGE' };
+const oc = id => OWNER[id || 'none'];
 
-// ---- layout -----------------------------------------------------------------
-const cv = document.getElementById('c'), ctx = cv.getContext('2d');
-const MAP_TOP = 60;                     // HUD strip height at top
-const MAP_PX  = 700;                    // play-area square
-const MAP_X   = (cv.width - MAP_PX)/2;  // left edge of map
-const MAP_Y   = MAP_TOP;
-const BLOCK   = MAP_PX/3;
-const HOME    = { x: MAP_X + MAP_PX/2, y: MAP_Y + MAP_PX/2 };
-const clamp=(v,a,b)=>v<a?a:v>b?b:v;
-const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-const now=()=>performance.now()/1000;
-
-// ---- state ------------------------------------------------------------------
-let objects=[], dogs=[], timeLeft=TUNE.ROUND_TIME, paused=false, over=false, lastT=0;
-const keys={};
-
-// instrumentation — this is the point: watch what the player DOES
-let stats;
-
-function freshStats(){ return {
-  marks:0,           // objects you brought to 100 yours
-  enemyContests:0,   // distinct enemy objects you eroded
-  poops:0,
-  retreats:0,        // refuel trips home with low bladder
-  vulnSec:0,         // time caught empty in enemy turf
-  farthest:0,        // farthest from home you ever pushed (px)
-}; }
-
-function blockIndexAt(x,y){
-  const c=clamp(Math.floor((x-MAP_X)/BLOCK),0,2);
-  const r=clamp(Math.floor((y-MAP_Y)/BLOCK),0,2);
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const bx = c => (c-1)*B;
+const bz = r => (r-1)*B;
+function blockIndexAt(x,z){
+  const c = clamp(Math.round(x/B)+1, 0, 2);
+  const r = clamp(Math.round(z/B)+1, 0, 2);
   return r*3+c;
 }
 
-function makeObjects(){
-  const arr=[]; let id=0;
-  for(let r=0;r<3;r++)for(let c=0;c<3;c++){
-    const bx=MAP_X+c*BLOCK, by=MAP_Y+r*BLOCK, isCenter=(r===1&&c===1);
-    for(let k=0;k<TUNE.OBJ_PER_BLOCK;k++){
-      // jitter inside block, keep margin; in center block keep clear of the doghouse
-      let x,y,tries=0;
-      do{
-        x=bx+40+Math.random()*(BLOCK-80);
-        y=by+40+Math.random()*(BLOCK-80);
-        tries++;
-      }while(isCenter && dist({x,y},HOME)<TUNE.HOME_RADIUS+34 && tries<30);
-      const weight=1+Math.floor(Math.random()*3); // 1..3 (mailbox..car/tree)
-      arr.push({id:id++, x, y, block:r*3+c, weight,
-                claim:0, owner:null, lock:0, _contestedBy:{}});
+let scene, camera, renderer, clock;
+let dogs = [], objects = [], tiles = [];
+let yaw = 0, pitch = 0.12, firstPerson = false;
+let timeLeft = TUNE.ROUND_TIME, running = false, over = false, lastResult = null;
+let stats = freshStats();
+const keys = {};
+const TMP = new THREE.Vector3();
+
+function freshStats(){ return { marks:0, contests:0, poops:0, vulnSec:0, farthest:0, retreats:0, wasLow:false }; }
+
+function initThree(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x9fd6ff);
+  scene.fog = new THREE.Fog(0x9fd6ff, 55, 135);
+
+  camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.1, 500);
+  renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.getElementById('game').appendChild(renderer.domElement);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x4a5a44, 0.95));
+  const sun = new THREE.DirectionalLight(0xfff2dc, 0.9);
+  sun.position.set(34, 56, 22);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  const d = 70;
+  sun.shadow.camera.left = -d; sun.shadow.camera.right = d;
+  sun.shadow.camera.top = d; sun.shadow.camera.bottom = -d;
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 160;
+  scene.add(sun);
+
+  clock = new THREE.Clock();
+  buildWorld();
+}
+
+function buildWorld(){
+  const base = new THREE.Mesh(
+    new THREE.PlaneGeometry(HALF*2+24, HALF*2+24),
+    new THREE.MeshLambertMaterial({ color:0x6b7178 }));
+  base.rotation.x = -Math.PI/2; base.position.y = -0.02; base.receiveShadow = true;
+  scene.add(base);
+
+  const tileGeo = new THREE.PlaneGeometry(B-3, B-3);
+  for (let r=0;r<3;r++) for (let c=0;c<3;c++){
+    const m = new THREE.MeshLambertMaterial({ color:0x6cbf5a });
+    const t = new THREE.Mesh(tileGeo, m);
+    t.rotation.x = -Math.PI/2; t.position.set(bx(c), 0, bz(r));
+    t.receiveShadow = true; scene.add(t);
+    tiles.push({ mesh:t, mat:m, base:new THREE.Color(0x6cbf5a) });
+  }
+
+  const fenceMat = new THREE.MeshLambertMaterial({ color:0xece4d2 });
+  for (let i=-HALF; i<=HALF; i+=3){
+    [[i,-HALF],[i,HALF],[-HALF,i],[HALF,i]].forEach(([x,z])=>{
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,2.2,6), fenceMat);
+      p.position.set(x,1.1,z); scene.add(p);
+    });
+  }
+
+  const home = new THREE.Group();
+  const hbody = new THREE.Mesh(new THREE.BoxGeometry(5,3.2,5), new THREE.MeshLambertMaterial({color:0x8a5a33}));
+  hbody.position.y = 1.6; hbody.castShadow = true; home.add(hbody);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(4.3,2.4,4), new THREE.MeshLambertMaterial({color:0x6b3f22}));
+  roof.position.y = 4.4; roof.rotation.y = Math.PI/4; home.add(roof);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(1.6,2,0.2), new THREE.MeshLambertMaterial({color:0x140d08}));
+  door.position.set(0,1,2.5); home.add(door);
+  scene.add(home);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(TUNE.HOME_R-0.35, TUNE.HOME_R, 44),
+    new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.45, side:THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI/2; ring.position.y = 0.05; scene.add(ring);
+
+  buildObjects();
+  spawnDogs();
+}
+
+const OBJ_TYPES = ['hydrant','mailbox','tree','lamp','can'];
+function makeObjectMesh(type, weight){
+  const g = new THREE.Group();
+  const w = 0.85 + weight*0.22;
+  const grey = new THREE.MeshLambertMaterial({ color:0xb9c0c8 });
+  const add = m => { m.castShadow = true; g.add(m); return m; };
+  if (type==='hydrant'){
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.5*w,0.6*w,1.4*w,12), grey)).position.y=0.7*w;
+    add(new THREE.Mesh(new THREE.SphereGeometry(0.5*w,10,8), grey)).position.y=1.4*w;
+  } else if (type==='mailbox'){
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,1.6*w,8), grey)).position.y=0.8*w;
+    add(new THREE.Mesh(new THREE.BoxGeometry(0.7*w,0.55*w,1.0*w), grey)).position.y=1.7*w;
+  } else if (type==='tree'){
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.25*w,0.34*w,1.6*w,8), new THREE.MeshLambertMaterial({color:0x7a5230}))).position.y=0.8*w;
+    add(new THREE.Mesh(new THREE.SphereGeometry(1.15*w,10,8), new THREE.MeshLambertMaterial({color:0x3f9d4a}))).position.y=2.2*w;
+  } else if (type==='lamp'){
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.16,2.7*w,8), grey)).position.y=1.35*w;
+    add(new THREE.Mesh(new THREE.SphereGeometry(0.35*w,10,8), new THREE.MeshLambertMaterial({color:0xfff0b0,emissive:0x4a3c00}))).position.y=2.8*w;
+  } else {
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.55*w,0.5*w,1.3*w,12), grey)).position.y=0.65*w;
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.6*w,0.6*w,0.15,12), grey)).position.y=1.35*w;
+  }
+  g.userData.tintTargets = g.children.filter(m=>m.material===grey);
+  return g;
+}
+
+function buildObjects(){
+  let id = 0;
+  for (let r=0;r<3;r++) for (let c=0;c<3;c++){
+    const cx=bx(c), cz=bz(r), center=(r===1&&c===1);
+    for (let k=0;k<TUNE.OBJ_PER_BLOCK;k++){
+      let x,z,tries=0;
+      do { x = cx+(Math.random()-0.5)*(B-7); z = cz+(Math.random()-0.5)*(B-7); tries++; }
+      while (center && Math.hypot(x,z) < TUNE.HOME_R+3 && tries<40);
+      const type = OBJ_TYPES[(Math.random()*OBJ_TYPES.length)|0];
+      const weight = 1 + ((Math.random()*3)|0);
+      const mesh = makeObjectMesh(type, weight);
+      mesh.position.set(x,0,z); scene.add(mesh);
+      const disc = new THREE.Mesh(new THREE.CircleGeometry(1.7,28),
+        new THREE.MeshBasicMaterial({ color:0x8a949e, transparent:true, opacity:0, side:THREE.DoubleSide }));
+      disc.rotation.x = -Math.PI/2; disc.position.set(x,0.05,z); scene.add(disc);
+      objects.push({ id:id++, x, z, block:r*3+c, weight, claim:0, owner:null, lock:0, contestedBy:{}, mesh, disc });
     }
   }
-  return arr;
 }
 
-function makeDogs(){
-  const mk=(id)=>({id, x:HOME.x, y:HOME.y, vx:0, vy:0, face:0,
-    bladder:TUNE.BLADDER_MAX, poop:TUNE.POOP_MAX, foodT:0,
-    peeing:false, vulnerable:false,
-    ai:{ state:'roam', target:null, think:0 }});
-  return [ mk('you'), mk('ai1'), mk('ai2') ];
+function makeDog(hex){
+  const g = new THREE.Group();
+  const mat = new THREE.MeshLambertMaterial({ color:hex });
+  const dark = new THREE.MeshLambertMaterial({ color:0x1a1a1a });
+  const part = (geo,m,x,y,z)=>{ const e=new THREE.Mesh(geo,m); e.position.set(x,y,z); e.castShadow=true; g.add(e); return e; };
+  part(new THREE.BoxGeometry(1.0,0.9,1.8), mat, 0,1.0,0);
+  const head = part(new THREE.BoxGeometry(0.8,0.8,0.8), mat, 0,1.35,1.05);
+  part(new THREE.BoxGeometry(0.42,0.36,0.42), mat, 0,1.2,1.5);
+  part(new THREE.BoxGeometry(0.18,0.18,0.12), dark, 0,1.25,1.73);
+  part(new THREE.BoxGeometry(0.2,0.36,0.15), mat, -0.3,1.82,0.98);
+  part(new THREE.BoxGeometry(0.2,0.36,0.15), mat, 0.3,1.82,0.98);
+  const legs = [];
+  for (const sx of [-0.35,0.35]) for (const sz of [-0.6,0.6])
+    legs.push(part(new THREE.CylinderGeometry(0.16,0.16,0.9,8), mat, sx,0.45,sz));
+  const tail = part(new THREE.CylinderGeometry(0.1,0.16,0.95,8), mat, 0,1.2,-1.0);
+  tail.rotation.x = Math.PI/3;
+  g.userData = { head, legs, tail };
+  return g;
 }
 
-function reset(){
-  objects=makeObjects();
-  dogs=makeDogs();
-  timeLeft=TUNE.ROUND_TIME;
-  over=false; paused=false;
-  stats=freshStats();
-  lastT=now();
+function spawnDogs(){
+  const mk = id => {
+    const mesh = makeDog(oc(id).hex);
+    const ang = id==='you'?0 : id==='ai1'?2.1 : 4.2;
+    mesh.position.set(Math.cos(ang)*2, 0, Math.sin(ang)*2);
+    const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1,6),
+      new THREE.MeshBasicMaterial({ color:0xffe34d, transparent:true, opacity:0.85 }));
+    stream.visible = false; scene.add(stream);
+    return { id, mesh, stream, bladder:TUNE.BLADDER_MAX, poop:TUNE.POOP_MAX, foodT:0,
+             peeing:false, vulnerable:false, ai:{ state:'roam', target:null, think:0 }, walk:0 };
+  };
+  dogs = [ mk('you'), mk('ai1'), mk('ai2') ];
+  dogs[0].mesh.rotation.y = yaw;
 }
 
-// ---- block ownership --------------------------------------------------------
-function blockOwners(){
-  const acc=Array.from({length:9},()=>({}));
-  for(const o of objects){
-    if(o.owner) acc[o.block][o.owner]=(acc[o.block][o.owner]||0)+o.weight;
-  }
-  return acc.map(m=>{
-    let best=null,bv=0,tie=false;
-    for(const k in m){ if(m[k]>bv){bv=m[k];best=k;tie=false;} else if(m[k]===bv) tie=true; }
-    return (bv>0 && !tie)?best:null;
-  });
+function nearestObject(d){
+  let best=null, bd=1e9;
+  for (const o of objects){ const dx=o.x-d.mesh.position.x, dz=o.z-d.mesh.position.z, dd=dx*dx+dz*dz; if (dd<bd){bd=dd;best=o;} }
+  return { o:best, d:Math.sqrt(bd) };
 }
 
-function blockTally(owners){
-  const t={you:0,ai1:0,ai2:0,null:0};
-  for(const o of owners) t[o]++;
-  return t;
-}
-
-// ---- core sim ---------------------------------------------------------------
-function nearestObject(dog){
-  let best=null,bd=1e9;
-  for(const o of objects){ const d=dist(dog,o); if(d<bd){bd=d;best=o;} }
-  return {o:best,d:bd};
-}
-
-function applyPee(dog,o,dt){
-  if(o.lock>0 && o.owner!==dog.id) return;           // locked by trump: untouchable
-  if(dog.bladder<=0) return;
-  dog.bladder=clamp(dog.bladder-TUNE.PEE_DRAIN*dt,0,TUNE.BLADDER_MAX);
-  if(o.owner===dog.id || o.owner===null){
-    o.owner=dog.id;
-    const before=o.claim;
-    o.claim=clamp(o.claim+TUNE.FILL_RATE*dt,0,100);
-    if(before<100 && o.claim>=100 && dog.id==='you') stats.marks++;
-  }else{
-    // enemy-owned: erode first
-    if(dog.id==='you' && !o._contestedBy['you']){ o._contestedBy['you']=true; stats.enemyContests++; }
-    o.claim-=TUNE.ERODE_RATE*dt;
-    if(o.claim<=0){ o.claim=0; o.owner=null; }
+function applyPee(dog, o, dt){
+  if (o.lock>0 && o.owner!==dog.id) return;
+  if (dog.bladder<=0) return;
+  dog.bladder = clamp(dog.bladder - TUNE.PEE_DRAIN*dt, 0, TUNE.BLADDER_MAX);
+  if (o.owner===dog.id || o.owner===null){
+    const before=o.claim; o.owner=dog.id; o.claim=clamp(o.claim+TUNE.FILL*dt,0,100);
+    if (dog.id==='you' && before<100 && o.claim>=100) stats.marks++;
+  } else {
+    if (dog.id==='you' && !o.contestedBy.you){ o.contestedBy.you=true; stats.contests++; }
+    o.claim -= TUNE.ERODE*dt;
+    if (o.claim<=0){ o.claim=0; o.owner=null; o.contestedBy={}; }
   }
 }
 
 function tryPoop(dog){
-  if(dog.poop<=0) return;
-  const {o,d}=nearestObject(dog);
-  if(!o || d>TUNE.MARK_RANGE) return;
-  if(o.lock>0 && o.owner!==dog.id) return;
-  o.owner=dog.id; o.claim=100; o.lock=TUNE.POOP_LOCK; dog.poop--;
-  if(dog.id==='you') stats.poops++;
+  if (dog.poop<=0) return;
+  const { o, d } = nearestObject(dog);
+  if (!o || d>TUNE.MARK_RANGE) return;
+  if (o.lock>0 && o.owner!==dog.id) return;
+  o.owner=dog.id; o.claim=100; o.lock=TUNE.POOP_LOCK; o.contestedBy={}; dog.poop--;
+  if (dog.id==='you') stats.poops++;
+}
+
+function blockOwners(){
+  const acc = Array.from({length:9},()=>({}));
+  for (const o of objects) if (o.owner) acc[o.block][o.owner]=(acc[o.block][o.owner]||0)+o.weight;
+  return acc.map(m=>{ let best=null,bv=0,tie=false;
+    for (const k in m){ if(m[k]>bv){bv=m[k];best=k;tie=false;} else if(m[k]===bv){tie=true;} }
+    return (bv>0&&!tie)?best:null; });
+}
+function tally(owners){ const t={you:0,ai1:0,ai2:0,none:0}; for(const o of owners) t[o||'none']++; return t; }
+
+function aiThink(dog,dt){
+  const ai=dog.ai; ai.think-=dt;
+  if (dog.bladder<16 && ai.state!=='retreat'){ ai.state='retreat'; ai.target=null; }
+  if (ai.state==='retreat'){
+    if (Math.hypot(dog.mesh.position.x,dog.mesh.position.z)<TUNE.HOME_R && dog.bladder>82){ ai.state='roam'; ai.target=null; }
+    return;
+  }
+  if (ai.think>0 && ai.target) return;
+  ai.think=0.35;
+  let best=null,bs=-1e9;
+  for (const o of objects){
+    if (o.lock>0 && o.owner!==dog.id) continue;
+    if (o.owner===dog.id && o.claim>85) continue;
+    const own = o.owner===dog.id?0.2 : o.owner===null?1.5 : 2.0;
+    const dx=o.x-dog.mesh.position.x, dz=o.z-dog.mesh.position.z;
+    const s = o.weight*own*42 - Math.hypot(dx,dz);
+    if (s>bs){ bs=s; best=o; }
+  }
+  ai.target=best;
+  if (best && best.weight>=3 && best.owner && best.owner!==dog.id && dog.poop>0 &&
+      Math.hypot(best.x-dog.mesh.position.x,best.z-dog.mesh.position.z)<TUNE.MARK_RANGE && Math.random()<0.5)
+    tryPoop(dog);
 }
 
 function stepDog(dog,dt,owners){
-  // movement
-  let mvx=0,mvy=0;
-  if(dog.id==='you'){
-    if(keys['a']||keys['arrowleft']) mvx--;
-    if(keys['d']||keys['arrowright'])mvx++;
-    if(keys['w']||keys['arrowup'])   mvy--;
-    if(keys['s']||keys['arrowdown']) mvy++;
+  const p = dog.mesh.position;
+  let mx=0, mz=0, sprint=false;
+  if (dog.id==='you'){
+    const f = { x:Math.sin(yaw), z:Math.cos(yaw) };
+    const rt = { x:f.z, z:-f.x };
+    if (keys['w']||keys['arrowup'])   { mx+=f.x; mz+=f.z; }
+    if (keys['s']||keys['arrowdown']) { mx-=f.x; mz-=f.z; }
+    if (keys['d']||keys['arrowright']){ mx+=rt.x; mz+=rt.z; }
+    if (keys['a']||keys['arrowleft']) { mx-=rt.x; mz-=rt.z; }
+    sprint = !!keys['shift'];
     dog.peeing = !!keys[' '];
-  }else{
-    aiThink(dog,dt,owners);
-    const tgt=dog.ai.target;
-    if(tgt){ const dx=tgt.x-dog.x, dy=tgt.y-dog.y, m=Math.hypot(dx,dy)||1;
-      if(m>6){ mvx=dx/m; mvy=dy/m; } }
+    dog.mesh.rotation.y = yaw;
+  } else {
+    aiThink(dog,dt);
+    const t = dog.ai.state==='retreat' ? {x:0,z:0} : (dog.ai.target||{x:p.x,z:p.z});
+    const dx=t.x-p.x, dz=t.z-p.z, m=Math.hypot(dx,dz);
+    if (m>0.6){ mx=dx/m; mz=dz/m; dog.mesh.rotation.y=Math.atan2(mx,mz); }
+    dog.peeing = false;
   }
-
-  const mag=Math.hypot(mvx,mvy);
-  if(mag>0){ mvx/=mag; mvy/=mag; dog.face=Math.atan2(mvy,mvx); }
-
-  const spd=TUNE.MOVE_SPEED*(dog.vulnerable?TUNE.VULN_SPEED:1);
-  dog.x=clamp(dog.x+mvx*spd*dt, MAP_X+12, MAP_X+MAP_PX-12);
-  dog.y=clamp(dog.y+mvy*spd*dt, MAP_Y+12, MAP_Y+MAP_PX-12);
-
-  // peeing resolves against nearest in-range object
-  if(dog.peeing){
-    const {o,d}=nearestObject(dog);
-    if(o && d<=TUNE.MARK_RANGE) applyPee(dog,o,dt); else dog.peeing=false;
+  const mag = Math.hypot(mx,mz);
+  let moved=0;
+  if (mag>0){
+    mx/=mag; mz/=mag;
+    const spd = TUNE.SPEED*(sprint?TUNE.SPRINT:1)*(dog.vulnerable?TUNE.VULN_SPEED:1);
+    p.x = clamp(p.x + mx*spd*dt, -BOUND, BOUND);
+    p.z = clamp(p.z + mz*spd*dt, -BOUND, BOUND);
+    moved = spd*dt;
   }
+  dog.walk += moved;
 
-  // home refuel
-  if(dist(dog,HOME)<TUNE.HOME_RADIUS){
-    dog.bladder=clamp(dog.bladder+TUNE.WATER_RATE*dt,0,TUNE.BLADDER_MAX);
-    dog.foodT+=dt;
-    if(dog.foodT>=TUNE.FOOD_TIME && dog.poop<TUNE.POOP_MAX){ dog.poop++; dog.foodT=0; }
-  }else dog.foodT=Math.max(0,dog.foodT-dt*0.5);
+  let streamTo=null;
+  if (dog.peeing){
+    const { o, d } = nearestObject(dog);
+    if (o && d<=TUNE.MARK_RANGE){ applyPee(dog,o,dt); streamTo=o; } else dog.peeing=false;
+  }
+  if (streamTo){
+    dog.stream.visible=true;
+    const a = new THREE.Vector3(p.x + Math.sin(dog.mesh.rotation.y)*0.9, 0.9, p.z + Math.cos(dog.mesh.rotation.y)*0.9);
+    const b = new THREE.Vector3(streamTo.x, 0.5, streamTo.z);
+    orientCyl(dog.stream, a, b);
+  } else dog.stream.visible=false;
 
-  // vulnerable: empty (no pee, no poop) standing in enemy-owned turf
-  const blk=blockIndexAt(dog.x,dog.y), bo=owners[blk];
+  if (Math.hypot(p.x,p.z) < TUNE.HOME_R){
+    dog.bladder = clamp(dog.bladder + TUNE.WATER*dt, 0, TUNE.BLADDER_MAX);
+    dog.foodT += dt;
+    if (dog.foodT>=TUNE.FOOD_TIME && dog.poop<TUNE.POOP_MAX){ dog.poop++; dog.foodT=0; }
+  } else dog.foodT = Math.max(0, dog.foodT - dt*0.5);
+
+  const bo = owners[blockIndexAt(p.x,p.z)];
   dog.vulnerable = (dog.bladder<=0 && dog.poop<=0 && bo && bo!==dog.id);
 
-  if(dog.id==='you'){
-    if(dog.vulnerable) stats.vulnSec+=dt;
-    stats.farthest=Math.max(stats.farthest, dist(dog,HOME));
+  const sw = Math.sin(dog.walk*1.4);
+  dog.mesh.position.y = Math.abs(sw)*0.12;
+  if (dog.mesh.userData.legs){
+    dog.mesh.userData.legs.forEach((L,i)=>{ L.rotation.x = Math.sin(dog.walk*1.4 + (i%2?Math.PI:0))*0.5*(moved>0?1:0.05); });
+    dog.mesh.userData.tail.rotation.z = sw*0.4;
+  }
+
+  if (dog.id==='you'){
+    if (dog.vulnerable) stats.vulnSec += dt;
+    const dh = Math.hypot(p.x,p.z);
+    stats.farthest = Math.max(stats.farthest, dh);
+    if (dog.bladder<20 && dh>14) stats.wasLow=true;
+    if (stats.wasLow && dh<TUNE.HOME_R){ stats.retreats++; stats.wasLow=false; }
   }
 }
 
-function aiThink(dog,dt,owners){
-  const ai=dog.ai; ai.think-=dt;
-  // forced retreat when nearly empty
-  if(dog.bladder<16 && ai.state!=='retreat'){
-    ai.state='retreat'; ai.target={x:HOME.x,y:HOME.y};
+function orientCyl(mesh,a,b){
+  const dir = TMP.copy(b).sub(a); const len = dir.length();
+  mesh.position.copy(a).add(b).multiplyScalar(0.5);
+  mesh.scale.set(1,len,1);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.normalize());
+}
+
+function updateVisuals(){
+  for (const o of objects){
+    const col = oc(o.owner).hex;
+    const dm = o.disc.material;
+    if (o.owner){
+      dm.color.setHex(col);
+      dm.opacity = 0.18 + 0.5*(o.claim/100);
+      const s = 0.55 + 0.85*(o.claim/100);
+      o.disc.scale.set(s,s,s);
+    } else { dm.opacity = 0; }
+    o.disc.position.y = o.lock>0 ? 0.05 + 0.05*Math.abs(Math.sin(performance.now()*0.006)) : 0.05;
+    o.mesh.userData.tintTargets.forEach(m=>{
+      if (o.owner) m.material.color.setHex(col).lerp(new THREE.Color(0xb9c0c8), 0.45);
+      else m.material.color.setHex(0xb9c0c8);
+    });
   }
-  if(ai.state==='retreat'){
-    if(dist(dog,HOME)<TUNE.HOME_RADIUS && dog.bladder>82){ ai.state='roam'; ai.target=null; }
-    return;
-  }
-  if(ai.think>0 && ai.target) return;
-  ai.think=0.3;
-  // score every object: prefer enemy/neutral & heavier & closer
-  let best=null,bs=-1e9;
-  for(const o of objects){
-    if(o.lock>0 && o.owner!==dog.id) continue;
-    const mineFull = (o.owner===dog.id && o.claim>85);
-    if(mineFull) continue;
-    const ownF = o.owner===dog.id?0.2 : o.owner===null?1.5 : 2.0;
-    const s = o.weight*ownF*40 - dist(dog,o);
-    if(s>bs){bs=s;best=o;}
-  }
-  if(best){ ai.target=best;
-    // occasionally drop the trump on a heavy contested object
-    if(best.weight>=3 && best.owner && best.owner!==dog.id && dog.poop>0 &&
-       dist(dog,best)<TUNE.MARK_RANGE && Math.random()<0.5) tryPoop(dog);
+  const ow = blockOwners();
+  tiles.forEach((t,i)=>{
+    if (ow[i]) t.mat.color.copy(t.base).lerp(new THREE.Color(oc(ow[i]).hex), 0.32);
+    else t.mat.color.copy(t.base);
+  });
+  return ow;
+}
+
+function updateCamera(){
+  const dog = dogs[0], p = dog.mesh.position;
+  const headY = 1.45;
+  const f = { x:Math.sin(yaw), z:Math.cos(yaw) };
+  if (firstPerson){
+    camera.position.set(p.x + f.x*0.55, p.y + headY, p.z + f.z*0.55);
+    const cp = Math.cos(pitch);
+    camera.lookAt(camera.position.x + f.x*cp, camera.position.y + Math.sin(pitch), camera.position.z + f.z*cp);
+  } else {
+    const dist = 8.5, height = 4.6 - pitch*3.5;
+    camera.position.set(p.x - f.x*dist, p.y + height, p.z - f.z*dist);
+    camera.lookAt(p.x + f.x*1.5, p.y + headY + pitch*2, p.z + f.z*1.5);
   }
 }
 
-function stepWorld(dt){
-  const owners=blockOwners();
-  // decay + lock countdown (skip decay while locked)
-  for(const o of objects){
-    if(o.lock>0){ o.lock=Math.max(0,o.lock-dt); continue; }
-    if(o.owner){ o.claim-=TUNE.DECAY_RATE*dt; if(o.claim<=0){o.claim=0;o.owner=null; o._contestedBy={};} }
-  }
-  // retreat counter (you): low bladder while heading home-ish
-  for(const dog of dogs) stepDog(dog,dt,owners);
-  timeLeft-=dt;
-  if(timeLeft<=0){ timeLeft=0; over=true; endRound(); }
+const $ = id => document.getElementById(id);
+function buildChips(){
+  $('chips').innerHTML='';
+  ['you','ai1','ai2'].forEach(k=>{
+    const el=document.createElement('div'); el.className='chip'; el.style.background=oc(k).css;
+    el.id='chip_'+k; el.textContent=oc(k).name+' 0'; $('chips').appendChild(el);
+  });
+}
+function updateHUD(owners){
+  const t = tally(owners);
+  const mm = Math.floor(timeLeft/60), ss = String(Math.floor(timeLeft%60)).padStart(2,'0');
+  $('timer').textContent = mm+':'+ss;
+  ['you','ai1','ai2'].forEach(k=> $('chip_'+k).textContent = oc(k).name+' '+t[k]);
+  const you = dogs[0];
+  $('bladder').style.width = (you.bladder/TUNE.BLADDER_MAX*100)+'%';
+  $('poop').className = you.poop>0 ? '' : 'empty';
+  $('vuln').style.display = (you.vulnerable && Math.floor(performance.now()*0.005)%2===0) ? 'block':'none';
+  $('cross').style.display = (firstPerson && running) ? 'block':'none';
+  $('viewtag').textContent = (firstPerson?'1st':'3rd')+' person · press C';
 }
 
-let lastResult=null;
+const mctx = $('mini').getContext('2d');
+function updateMinimap(owners){
+  const W=300, cell=W/3;
+  mctx.clearRect(0,0,W,W);
+  for (let i=0;i<9;i++){
+    const c=i%3, r=(i/3|0);
+    mctx.fillStyle = owners[i] ? oc(owners[i]).css : 'rgba(150,160,170,0.18)';
+    mctx.globalAlpha = owners[i] ? 0.5 : 1; mctx.fillRect(c*cell,r*cell,cell,cell);
+    mctx.globalAlpha = 1; mctx.strokeStyle='rgba(255,255,255,0.22)'; mctx.lineWidth=2;
+    mctx.strokeRect(c*cell,r*cell,cell,cell);
+  }
+  const tx = x => (x+HALF)/(HALF*2)*W, tz = z => (z+HALF)/(HALF*2)*W;
+  mctx.fillStyle='rgba(255,255,255,0.9)'; mctx.fillRect(tx(0)-3,tz(0)-3,6,6);
+  for (const d of dogs){
+    mctx.beginPath(); mctx.arc(tx(d.mesh.position.x), tz(d.mesh.position.z), d.id==='you'?7:5, 0, 7);
+    mctx.fillStyle = oc(d.id).css; mctx.fill();
+    if (d.id==='you'){ mctx.lineWidth=2; mctx.strokeStyle='#fff'; mctx.stroke(); }
+  }
+}
 
+function showOnly(which){
+  ['startOv','pauseOv','endOv'].forEach(id=> $(id).classList.toggle('hide', id!==which));
+}
 function endRound(){
-  const t=blockTally(blockOwners());
-  let win='you',wv=t.you;
-  if(t.ai1>wv){win='ai1';wv=t.ai1;} if(t.ai2>wv){win='ai2';wv=t.ai2;}
-  const tie = (t.you===wv && win!=='you') || (Object.values(t).filter(v=>v===wv).length>1 && wv>0);
-  lastResult={tally:t, win, tie};
-  // log for the playtest record
-  console.log('=== BIG DOG round ===',
-    {blocks:t, you_marks:stats.marks, enemy_contests:stats.enemyContests,
-     poops:stats.poops, vulnerable_sec:stats.vulnSec.toFixed(1),
-     farthest_px:Math.round(stats.farthest)});
+  over=true; running=false;
+  const ow = blockOwners(); const t = tally(ow);
+  let win='you', wv=t.you;
+  if (t.ai1>wv){win='ai1';wv=t.ai1;} if (t.ai2>wv){win='ai2';wv=t.ai2;}
+  const tieTop = ['you','ai1','ai2'].filter(k=>t[k]===wv).length>1;
+  lastResult = { t, win, tie: tieTop&&wv>0 };
+  $('endTitle').textContent = lastResult.tie ? 'Tie game' : win==='you' ? 'You win 🐕' : oc(win).name+' wins';
+  $('endSub').textContent = `blocks — YOU ${t.you} · RED ${t.ai1} · ORANGE ${t.ai2} · open ${t.none}`;
+  $('endstats').innerHTML =
+    `objects fully marked: <b>${stats.marks}</b><br>`+
+    `enemy turf contested: <b>${stats.contests}</b><br>`+
+    `power-poops used: <b>${stats.poops}</b><br>`+
+    `retreats to refuel: <b>${stats.retreats}</b><br>`+
+    `time vulnerable: <b>${stats.vulnSec.toFixed(1)}s</b><br>`+
+    `farthest push from home: <b>${Math.round(stats.farthest)}u</b>`;
+  console.log('=== BIG DOG round ===', { blocks:t, marks:stats.marks, contests:stats.contests,
+    poops:stats.poops, retreats:stats.retreats, vulnerable_sec:+stats.vulnSec.toFixed(1) });
+  showOnly('endOv');
+  if (document.pointerLockElement) document.exitPointerLock();
+}
+function restart(){
+  for (const o of objects){ o.claim=0; o.owner=null; o.lock=0; o.contestedBy={}; }
+  dogs.forEach((d,i)=>{
+    const ang = i===0?0 : i===1?2.1:4.2;
+    d.mesh.position.set(Math.cos(ang)*2,0,Math.sin(ang)*2);
+    d.bladder=TUNE.BLADDER_MAX; d.poop=TUNE.POOP_MAX; d.foodT=0; d.peeing=false; d.vulnerable=false;
+    d.ai={state:'roam',target:null,think:0}; d.stream.visible=false; d.walk=0;
+  });
+  timeLeft=TUNE.ROUND_TIME; over=false; stats=freshStats();
 }
 
-// ---- render -----------------------------------------------------------------
-function drawDog(d){
-  const col=OWNER_COLOR[d.id], r=13;
-  // body
-  ctx.beginPath(); ctx.arc(d.x,d.y,r,0,7); ctx.fillStyle=col; ctx.fill();
-  if(d.id==='you'){ ctx.lineWidth=2.5; ctx.strokeStyle='#fff'; ctx.stroke(); }
-  // nose (facing)
-  ctx.beginPath();
-  ctx.moveTo(d.x+Math.cos(d.face)*r, d.y+Math.sin(d.face)*r);
-  ctx.lineTo(d.x+Math.cos(d.face)*(r+9), d.y+Math.sin(d.face)*(r+9));
-  ctx.lineWidth=5; ctx.strokeStyle=col; ctx.stroke();
-  // vulnerable flash
-  if(d.vulnerable && Math.floor(now()*6)%2===0){
-    ctx.beginPath(); ctx.arc(d.x,d.y,r+7,0,7); ctx.lineWidth=2;
-    ctx.strokeStyle='#fff'; ctx.stroke();
-  }
-  // pee stream
-  if(d.peeing){ const {o,dd}=(()=>{const n=nearestObject(d);return {o:n.o,dd:n.d};})();
-    if(o && dist(d,o)<=TUNE.MARK_RANGE){
-      ctx.strokeStyle=o.lock>0&&o.owner!==d.id?'#ffffff55':col;
-      ctx.lineWidth=3; ctx.setLineDash([2,4]);
-      ctx.beginPath(); ctx.moveTo(d.x,d.y); ctx.lineTo(o.x,o.y); ctx.stroke();
-      ctx.setLineDash([]);
+function bindInput(){
+  const cv = renderer.domElement;
+  const requestPlay = ()=>{ if (!over) cv.requestPointerLock(); };
+  $('startOv').addEventListener('click', requestPlay);
+  $('pauseOv').addEventListener('click', requestPlay);
+  $('endOv').addEventListener('click', ()=>{ restart(); cv.requestPointerLock(); });
+
+  document.addEventListener('pointerlockchange', ()=>{
+    running = (document.pointerLockElement===cv) && !over;
+    if (running) showOnly(null);
+    else if (!over) showOnly('pauseOv');
+  });
+  document.addEventListener('mousemove', e=>{
+    if (document.pointerLockElement!==cv) return;
+    yaw -= e.movementX*0.0024;
+    pitch = clamp(pitch - e.movementY*0.0024, -0.6, 0.9);
+  });
+  document.addEventListener('mousedown', e=>{ if (document.pointerLockElement===cv && e.button===0) keys[' ']=true; });
+  document.addEventListener('mouseup',   e=>{ if (e.button===0) keys[' ']=false; });
+
+  addEventListener('keydown', e=>{
+    const k=e.key.toLowerCase();
+    if ([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k)) e.preventDefault();
+    keys[k]=true;
+    if (e.key==='Shift') keys['shift']=true;
+    if (!running) return;
+    if (k==='c'){ firstPerson=!firstPerson; dogs[0].mesh.visible=!firstPerson; }
+    if (k==='p') tryPoop(dogs[0]);
+  });
+  addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; if(e.key==='Shift') keys['shift']=false; });
+
+  addEventListener('resize', ()=>{
+    camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  let dt = clock.getDelta(); if (dt>0.05) dt=0.05;
+  if (running && !over){
+    for (const o of objects){
+      if (o.lock>0){ o.lock=Math.max(0,o.lock-dt); continue; }
+      if (o.owner){ o.claim-=TUNE.DECAY*dt; if(o.claim<=0){o.claim=0;o.owner=null;o.contestedBy={};} }
     }
+    const owners = blockOwners();
+    for (const d of dogs) stepDog(d,dt,owners);
+    timeLeft -= dt;
+    if (timeLeft<=0){ timeLeft=0; endRound(); }
   }
+  const owners = updateVisuals();
+  updateCamera();
+  updateHUD(owners);
+  updateMinimap(owners);
+  renderer.render(scene,camera);
 }
 
-function drawObject(o){
-  const R=11;
-  // base
-  ctx.beginPath(); ctx.arc(o.x,o.y,R,0,7);
-  ctx.fillStyle='#454c55'; ctx.fill();
-  ctx.lineWidth=2; ctx.strokeStyle='#5a626c'; ctx.stroke();
-  // claim ring
-  if(o.owner){
-    const a=-Math.PI/2, b=a+(o.claim/100)*Math.PI*2;
-    ctx.beginPath(); ctx.arc(o.x,o.y,R+4,a,b);
-    ctx.lineWidth=4; ctx.strokeStyle=OWNER_COLOR[o.owner]; ctx.stroke();
-  }
-  // weight dots
-  for(let i=0;i<o.weight;i++){
-    ctx.beginPath(); ctx.arc(o.x-4+i*4, o.y, 1.4,0,7);
-    ctx.fillStyle=o.owner?'#fff':'#aab3bd'; ctx.fill();
-  }
-  // lock
-  if(o.lock>0){
-    ctx.beginPath(); ctx.arc(o.x,o.y,R+8,0,7);
-    ctx.setLineDash([3,4]); ctx.lineWidth=2;
-    ctx.strokeStyle=`rgba(255,255,255,${0.4+0.4*Math.abs(Math.sin(now()*5))})`;
-    ctx.stroke(); ctx.setLineDash([]);
-  }
+function boot(){
+  initThree();
+  buildChips();
+  bindInput();
+  dogs[0].mesh.visible = true;
+  showOnly('startOv');
+  setTimeout(()=> $('loader').classList.add('vl-hidden'), 1200);
+  animate();
 }
-
-function render(){
-  ctx.clearRect(0,0,cv.width,cv.height);
-  const owners=blockOwners();
-  // blocks + ownership tint
-  for(let r=0;r<3;r++)for(let c=0;c<3;c++){
-    const x=MAP_X+c*BLOCK,y=MAP_Y+r*BLOCK,o=owners[r*3+c];
-    ctx.fillStyle=C.street; ctx.fillRect(x,y,BLOCK,BLOCK);
-    if(o){ ctx.fillStyle=OWNER_COLOR[o]+'22'; ctx.fillRect(x,y,BLOCK,BLOCK); }
-    ctx.strokeStyle=C.grid; ctx.lineWidth=2; ctx.strokeRect(x,y,BLOCK,BLOCK);
-  }
-  // home zone + doghouse
-  ctx.beginPath(); ctx.arc(HOME.x,HOME.y,TUNE.HOME_RADIUS,0,7);
-  ctx.fillStyle='#ffffff10'; ctx.fill();
-  ctx.setLineDash([5,5]); ctx.strokeStyle='#ffffff44'; ctx.lineWidth=2; ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle=C.home;
-  ctx.fillRect(HOME.x-16,HOME.y-6,32,22);
-  ctx.beginPath(); ctx.moveTo(HOME.x-20,HOME.y-6); ctx.lineTo(HOME.x,HOME.y-22);
-  ctx.lineTo(HOME.x+20,HOME.y-6); ctx.closePath(); ctx.fill();
-  ctx.fillStyle='#000'; ctx.fillRect(HOME.x-5,HOME.y+2,10,14);
-
-  for(const o of objects) drawObject(o);
-  for(const d of dogs) drawDog(d);
-  drawHUD(owners);
-  if(over) drawSummary();
-  else if(paused) drawCenterMsg('PAUSED','Esc to resume');
+if (typeof THREE==='undefined'){
+  document.getElementById('loader').innerHTML =
+    '<div style="color:#fff;font-family:monospace;text-align:center;padding:20px">'+
+    'Could not load 3D engine (three.js).<br>Check your connection and refresh.</div>';
+} else {
+  boot();
 }
-
-function bar(x,y,w,h,frac,col,bg='#00000055'){
-  ctx.fillStyle=bg; ctx.fillRect(x,y,w,h);
-  ctx.fillStyle=col; ctx.fillRect(x,y,w*clamp(frac,0,1),h);
-  ctx.strokeStyle='#ffffff33'; ctx.lineWidth=1; ctx.strokeRect(x,y,w,h);
-}
-
-function drawHUD(owners){
-  const t=blockTally(owners);
-  // top strip
-  ctx.fillStyle='#1b1f24'; ctx.fillRect(0,0,cv.width,MAP_TOP-4);
-  // timer
-  const mm=String(Math.floor(timeLeft/60)).padStart(2,'0');
-  const ss=String(Math.floor(timeLeft%60)).padStart(2,'0');
-  ctx.fillStyle=C.ink; ctx.font='bold 26px ui-monospace,monospace'; ctx.textBaseline='middle';
-  ctx.textAlign='left'; ctx.fillText(`${mm}:${ss}`, MAP_X, MAP_TOP/2);
-  // block tally chips
-  ctx.font='bold 16px ui-monospace,monospace'; ctx.textAlign='center';
-  const chips=[['you',t.you],['ai1',t.ai1],['ai2',t.ai2]];
-  let cx=cv.width/2-130;
-  for(const [k,v] of chips){
-    ctx.fillStyle=OWNER_COLOR[k]; ctx.fillRect(cx,MAP_TOP/2-13,86,26);
-    ctx.fillStyle='#fff'; ctx.fillText(`${OWNER_NAME[k]} ${v}`, cx+43, MAP_TOP/2);
-    cx+=96;
-  }
-  // bottom strip — player resources
-  const you=dogs[0], by=MAP_Y+MAP_PX+16;
-  ctx.fillStyle=C.dim; ctx.font='12px ui-monospace,monospace'; ctx.textAlign='left'; ctx.textBaseline='middle';
-  ctx.fillText('BLADDER', MAP_X, by+8);
-  bar(MAP_X+70, by, 220, 16, you.bladder/TUNE.BLADDER_MAX, C.you);
-  ctx.fillStyle=C.dim; ctx.fillText('POOP', MAP_X+320, by+8);
-  ctx.beginPath(); ctx.arc(MAP_X+378,by+8,8,0,7);
-  ctx.fillStyle=you.poop>0?C.home:'#3a414a'; ctx.fill();
-  ctx.strokeStyle='#ffffff44'; ctx.lineWidth=1.5; ctx.stroke();
-  if(you.vulnerable && Math.floor(now()*5)%2===0){
-    ctx.fillStyle='#fff'; ctx.font='bold 15px ui-monospace,monospace'; ctx.textAlign='right';
-    ctx.fillText('⚠ VULNERABLE — get home', MAP_X+MAP_PX, by+8);
-  }
-}
-
-function drawCenterMsg(big,small){
-  ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,0,cv.width,cv.height);
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillStyle='#fff'; ctx.font='bold 40px ui-monospace,monospace';
-  ctx.fillText(big,cv.width/2,cv.height/2-20);
-  ctx.fillStyle=C.dim; ctx.font='16px ui-monospace,monospace';
-  ctx.fillText(small,cv.width/2,cv.height/2+22);
-}
-
-function drawSummary(){
-  ctx.fillStyle='rgba(0,0,0,.72)'; ctx.fillRect(0,0,cv.width,cv.height);
-  const r=lastResult, cx=cv.width/2; let y=180;
-  ctx.textAlign='center'; ctx.textBaseline='middle';
-  const head = r.tie?'TIE GAME' : r.win==='you'?'YOU WIN':`${OWNER_NAME[r.win]} WINS`;
-  ctx.fillStyle = r.win==='you'?C.you:'#fff'; ctx.font='bold 44px ui-monospace,monospace';
-  ctx.fillText('🐕 '+head, cx, y); y+=46;
-  ctx.font='18px ui-monospace,monospace'; ctx.fillStyle=C.ink;
-  ctx.fillText(`blocks  YOU ${r.tally.you} · RED ${r.tally.ai1} · ORANGE ${r.tally.ai2} · open ${r.tally.null}`,cx,y); y+=44;
-  ctx.fillStyle=C.dim; ctx.font='14px ui-monospace,monospace';
-  ctx.fillText('— what you did this round —',cx,y); y+=26;
-  const lines=[
-    `objects fully marked: ${stats.marks}`,
-    `enemy turf contested: ${stats.enemyContests}`,
-    `power-poops used: ${stats.poops}`,
-    `time vulnerable: ${stats.vulnSec.toFixed(1)}s`,
-    `farthest push from home: ${Math.round(stats.farthest)}px`,
-  ];
-  ctx.fillStyle=C.ink;
-  for(const L of lines){ ctx.fillText(L,cx,y); y+=24; }
-  y+=14; ctx.fillStyle='#fff'; ctx.font='bold 18px ui-monospace,monospace';
-  ctx.fillText('press R for one more round', cx, y);
-}
-
-// ---- loop / input -----------------------------------------------------------
-function frame(){
-  const t=now(); let dt=t-lastT; lastT=t; dt=Math.min(dt,0.05);
-  if(!paused && !over) stepWorld(dt);
-  render();
-  requestAnimationFrame(frame);
-}
-
-addEventListener('keydown',e=>{
-  const k=e.key.toLowerCase();
-  if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k)) e.preventDefault();
-  keys[k]=true;
-  if(k==='p' && !paused && !over) tryPoop(dogs[0]);
-  if(k==='r') reset();
-  if(k==='escape' && !over) paused=!paused;
-});
-
-addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
-
-reset(); lastT=now(); requestAnimationFrame(frame);
 </script>
 </body>
 </html>
