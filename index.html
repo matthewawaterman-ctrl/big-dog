@@ -44,6 +44,11 @@
   #mini{position:absolute;top:12px;right:12px;width:150px;height:150px;border-radius:10px;
     background:rgba(7,5,15,.55);border:1px solid rgba(255,255,255,.18);box-shadow:0 4px 16px rgba(0,0,0,.4)}
   #viewtag{position:absolute;right:14px;bottom:16px;font-size:12px;opacity:.7}
+  #ctrls{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:12px;opacity:.72;white-space:nowrap}
+  #ctrls b{color:#ffd34d}
+  #prompt{position:absolute;left:50%;top:55%;transform:translateX(-50%);font-size:15px;font-weight:700;
+    color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.75);display:none;white-space:nowrap}
+  #prompt b{color:#ffd34d}
 
   /* ---------- overlays ---------- */
   .ov{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -86,6 +91,8 @@
   <div id="cross"></div>
   <canvas id="mini" width="300" height="300"></canvas>
   <div id="viewtag">3rd person · press C</div>
+  <div id="ctrls"><b>Space</b>/click pee · <b>P</b>/right-click poop · <b>C</b> view</div>
+  <div id="prompt">Hold <b>Space</b> to mark · <b>P</b> to poop</div>
 </div>
 
 <!-- ===== overlays ===== -->
@@ -97,7 +104,7 @@
   <div class="keys">
     <b>↑ ↓</b> walk &nbsp;·&nbsp; <b>← →</b> turn (hold both to curve) &nbsp;·&nbsp; <b>Shift</b> sprint<br>
     hold <b>⌘ Cmd</b> (or <b>Ctrl</b>) + arrows to look around &nbsp;·&nbsp; <b>C</b> 1st/3rd person<br>
-    <b>Space</b> pee &nbsp;·&nbsp; <b>P</b> power-poop (trump)
+    <b>Space</b> (or left-click) pee &nbsp;·&nbsp; <b>P</b> (or right-click) power-poop (trump)
   </div>
   <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
   <div class="cta">Click to play</div>
@@ -140,7 +147,7 @@ const TUNE = {
   SPEED: 16,         // units/sec
   SPRINT: 1.7,
   VULN_SPEED: 0.55,
-  TURN: 2.6,         // rad/sec — heading turn rate (left/right arrows)
+  TURN: 3.2,         // rad/sec — heading turn rate (left/right arrows)
   LOOK_YAW: 1.9,     // rad/sec — camera pan while holding Cmd
   LOOK_PITCH: 1.4,   // rad/sec — camera tilt while holding Cmd
   OBJ_PER_BLOCK: 4,
@@ -512,9 +519,9 @@ function updateCamera(){
     const cp = Math.cos(pitch);
     camera.lookAt(camera.position.x + f.x*cp, camera.position.y + Math.sin(pitch), camera.position.z + f.z*cp);
   } else {
-    const dist = 8.5, height = 4.6 - pitch*3.5;
+    const dist = 5.2, height = 3.9 - pitch*3.0;
     camera.position.set(p.x - f.x*dist, p.y + height, p.z - f.z*dist);
-    camera.lookAt(p.x + f.x*1.5, p.y + headY + pitch*2, p.z + f.z*1.5);
+    camera.lookAt(p.x + f.x*1.0, p.y + headY + pitch*2, p.z + f.z*1.0);
   }
 }
 
@@ -537,6 +544,17 @@ function updateHUD(owners){
   $('vuln').style.display = (you.vulnerable && Math.floor(performance.now()*0.005)%2===0) ? 'block':'none';
   $('cross').style.display = (firstPerson && running) ? 'block':'none';
   $('viewtag').textContent = (firstPerson?'1st':'3rd')+' person · press C';
+  // in-range prompt: tells the player pee/poop are available right here
+  if (running){
+    const n = nearestObject(you);
+    if (n.o && n.d <= TUNE.MARK_RANGE){
+      const enemy = n.o.owner && n.o.owner!=='you';
+      $('prompt').innerHTML = enemy
+        ? 'Hold <b>Space</b> to take it · <b>P</b> to poop-claim'
+        : 'Hold <b>Space</b> to mark · <b>P</b> to poop';
+      $('prompt').style.display = 'block';
+    } else $('prompt').style.display = 'none';
+  } else $('prompt').style.display = 'none';
 }
 
 const mctx = $('mini').getContext('2d');
@@ -607,8 +625,14 @@ function bindInput(){
     else { for (const kk in keys) keys[kk]=false; if (!over) showOnly('pauseOv'); }
   });
   // Trackpad/mouse no longer steers. Left-click is just an extra "pee" button.
-  document.addEventListener('mousedown', e=>{ if (document.pointerLockElement===cv && e.button===0) keys[' ']=true; });
+  // Mouse buttons are ghost-proof backups for the keyboard: left = pee, right = poop.
+  document.addEventListener('mousedown', e=>{
+    if (document.pointerLockElement!==cv) return;
+    if (e.button===0) keys[' ']=true;
+    if (e.button===2 && running) tryPoop(dogs[0]);
+  });
   document.addEventListener('mouseup',   e=>{ if (e.button===0) keys[' ']=false; });
+  cv.addEventListener('contextmenu', e=>e.preventDefault());
 
   addEventListener('keydown', e=>{
     const k=e.key.toLowerCase();
