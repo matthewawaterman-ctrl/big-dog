@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="build" content="bd-007">
 <title>BIG DOG</title>
 <style>
   html,body{height:100%;margin:0;background:#0d0a22;overflow:hidden;
@@ -63,9 +64,22 @@
   .cta{margin-top:22px;font-size:18px;font-weight:700;color:#fff;
     border:2px solid rgba(255,255,255,.6);border-radius:24px;padding:10px 24px}
   #endstats{font-size:14px;line-height:1.85;opacity:.92;margin-top:8px}
+  .buildline{margin-top:16px;font-size:13px;letter-spacing:2px;opacity:.7;text-transform:uppercase}
+  .buildline b{color:#ffd34d;letter-spacing:1px}
+  #buildtag{position:absolute;left:14px;top:12px;z-index:60;font-size:12px;letter-spacing:1px;
+    opacity:.55;pointer-events:none}
+  #newver{position:fixed;top:0;left:0;right:0;z-index:200;display:none;cursor:pointer;
+    padding:12px 16px;text-align:center;font-size:15px;font-weight:700;color:#0d0a22;
+    background:linear-gradient(90deg,#ffd34d,#ffb347);box-shadow:0 3px 14px rgba(0,0,0,.45);
+    animation:nvIn .35s ease}
+  #newver b{text-decoration:underline}
+  @keyframes nvIn{from{transform:translateY(-100%)}to{transform:translateY(0)}}
 </style>
 </head>
 <body>
+
+<div id="newver" onclick="location.reload()">🔄 New build <b id="newverTag"></b> deployed — click to refresh</div>
+<div id="buildtag"></div>
 
 <div id="game"></div>
 
@@ -108,6 +122,7 @@
   </div>
   <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
   <div class="cta">Click to play</div>
+  <div class="buildline">build <b id="buildLabel"></b></div>
 </div>
 
 <div class="ov hide" id="pauseOv">
@@ -148,6 +163,7 @@ const TUNE = {
   SPRINT: 1.7,
   VULN_SPEED: 0.55,
   TURN: 3.2,         // rad/sec — heading turn rate (left/right arrows)
+  CAM_FOLLOW: 4,     // how fast the camera swings behind you when you start walking (lower = lazier)
   LOOK_YAW: 1.9,     // rad/sec — camera pan while holding Cmd
   LOOK_PITCH: 1.4,   // rad/sec — camera tilt while holding Cmd
   OBJ_PER_BLOCK: 4,
@@ -176,12 +192,16 @@ function blockIndexAt(x,z){
 
 let scene, camera, renderer, clock;
 let dogs = [], objects = [], tiles = [];
-let yaw = 0, pitch = 0.12, camYaw = 0, firstPerson = false;
+let yaw = 0, pitch = 0.12, camYaw = 0, camFollowYaw = 0, playerFwd = 0, firstPerson = false;
 const PITCH_DEFAULT = 0.12;
+const BUILD = (document.querySelector('meta[name="build"]') || {}).content || 'dev';
 let timeLeft = TUNE.ROUND_TIME, running = false, over = false, lastResult = null;
 let stats = freshStats();
 const keys = {};
 const TMP = new THREE.Vector3();
+
+// shortest-path angle ease (so the camera never spins the long way round)
+function lerpAngle(a, b, t){ let d = Math.atan2(Math.sin(b-a), Math.cos(b-a)); return a + d*t; }
 
 function freshStats(){ return { marks:0, contests:0, poops:0, vulnSec:0, farthest:0, retreats:0, wasLow:false }; }
 
@@ -406,6 +426,7 @@ function stepDog(dog,dt,owners){
     const Dn= keys['arrowdown']||keys['s'];
     if (keys['meta']){
       // ---- LOOK mode: hold Cmd/Ctrl, arrows adjust point of view (no driving) ----
+      playerFwd = 0;
       if (L) camYaw += TUNE.LOOK_YAW*dt;
       if (R) camYaw -= TUNE.LOOK_YAW*dt;
       if (U) pitch = clamp(pitch + TUNE.LOOK_PITCH*dt, -0.5, 0.9);
@@ -415,6 +436,7 @@ function stepDog(dog,dt,owners){
       if (L) yaw += TUNE.TURN*dt;          // turn left
       if (R) yaw -= TUNE.TURN*dt;          // turn right
       const fwd = (U?1:0) - (Dn?1:0);
+      playerFwd = fwd;
       mx = Math.sin(yaw)*fwd; mz = Math.cos(yaw)*fwd;
       // ease the view back behind the dog when not actively looking
       camYaw += (0 - camYaw) * Math.min(1, dt*7);
@@ -512,16 +534,21 @@ function updateVisuals(){
 function updateCamera(){
   const dog = dogs[0], p = dog.mesh.position;
   const headY = 1.45;
-  const vy = yaw + camYaw;                          // view yaw = heading + look offset
-  const f = { x:Math.sin(vy), z:Math.cos(vy) };
   if (firstPerson){
+    // first person already spins on the spot (camera sits on the axis)
+    const vy = yaw + camYaw;
+    const f = { x:Math.sin(vy), z:Math.cos(vy) };
     camera.position.set(p.x + Math.sin(yaw)*0.55, p.y + headY, p.z + Math.cos(yaw)*0.55);
     const cp = Math.cos(pitch);
     camera.lookAt(camera.position.x + f.x*cp, camera.position.y + Math.sin(pitch), camera.position.z + f.z*cp);
   } else {
+    // third person: orbit on camFollowYaw, which only catches up while walking.
+    // Turning in place leaves it fixed -> the dog spins on its axis, camera still.
+    const ov = camFollowYaw + camYaw;
+    const f = { x:Math.sin(ov), z:Math.cos(ov) };
     const dist = 5.2, height = 3.9 - pitch*3.0;
     camera.position.set(p.x - f.x*dist, p.y + height, p.z - f.z*dist);
-    camera.lookAt(p.x + f.x*1.0, p.y + headY + pitch*2, p.z + f.z*1.0);
+    camera.lookAt(p.x, p.y + headY + pitch*2, p.z);
   }
 }
 
@@ -610,6 +637,8 @@ function restart(){
     d.ai={state:'roam',target:null,think:0}; d.stream.visible=false; d.walk=0;
   });
   timeLeft=TUNE.ROUND_TIME; over=false; stats=freshStats();
+  yaw=0; camYaw=0; camFollowYaw=0; pitch=PITCH_DEFAULT; playerFwd=0;
+  dogs[0].mesh.rotation.y=0;
 }
 
 function bindInput(){
@@ -674,6 +703,8 @@ function animate(){
     }
     const owners = blockOwners();
     for (const d of dogs) stepDog(d,dt,owners);
+    // camera follows the heading only while moving; pure turns leave it fixed
+    if (playerFwd !== 0) camFollowYaw = lerpAngle(camFollowYaw, yaw, Math.min(1, dt*TUNE.CAM_FOLLOW));
     timeLeft -= dt;
     if (timeLeft<=0){ timeLeft=0; endRound(); }
   }
@@ -689,9 +720,34 @@ function boot(){
   buildChips();
   bindInput();
   dogs[0].mesh.visible = true;
+  $('buildLabel').textContent = BUILD;
+  $('buildtag').textContent = BUILD;
   showOnly('startOv');
   setTimeout(()=> $('loader').classList.add('vl-hidden'), 1200);
+  startUpdateWatch();
   animate();
+}
+
+// Poll the live page for a newer build tag. When the deployed build differs
+// from the one we loaded, drop a banner that stays until the player refreshes.
+function startUpdateWatch(){
+  let notified = false;
+  const check = () => {
+    if (notified) return;
+    fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' })
+      .then(r => r.ok ? r.text() : Promise.reject())
+      .then(html => {
+        const m = html.match(/<meta name="build" content="([^"]+)">/);
+        if (m && m[1] && m[1] !== BUILD){
+          notified = true;
+          $('newverTag').textContent = m[1];
+          $('newver').style.display = 'block';
+        }
+      })
+      .catch(()=>{});
+  };
+  setInterval(check, 45000);   // every 45s
+  setTimeout(check, 8000);     // and once shortly after load
 }
 if (typeof THREE==='undefined'){
   document.getElementById('loader').innerHTML =
