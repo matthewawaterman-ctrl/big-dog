@@ -15,21 +15,12 @@
     flex-direction:column;background:radial-gradient(circle at 50% 35%,#181230 0%,#0d0a22 60%,#07050f 100%);
     transition:opacity .45s ease}
   .vl-loading.vl-hidden{opacity:0;pointer-events:none}
-  .vl-cham-wrap{position:relative;width:clamp(150px,32vw,240px);min-height:120px}
-  .vl-cham{display:block;width:100%;height:auto}
-  .vl-eyelid{position:absolute;left:23.7%;top:29.2%;width:24%;aspect-ratio:1;
-    transform:translate(-50%,-50%);overflow:visible;pointer-events:none}
-  .vl-lid-path{fill:#23371d;stroke:#101c10;stroke-width:1.2;animation:vlBlink 3.6s ease-in-out infinite}
-  @keyframes vlBlink{
-    0%,86%,100%{d:path("M -50 -50 L 50 -50 L 50 -50 Q 0 -50 -50 -50 Z")}
-    90%,94%{d:path("M -50 -50 L 50 -50 L 50 50 Q 0 72 -50 50 Z")}
-    98%{d:path("M -50 -50 L 50 -50 L 50 -50 Q 0 -50 -50 -50 Z")}}
-  .vl-word{margin-top:22px;font-size:clamp(34px,8vw,52px);font-weight:800;letter-spacing:6px;
-    background:linear-gradient(90deg,#b9f27a,#7ad0ff,#c79bff);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .vl-sub{margin-top:18px;display:flex;gap:6px}
-  .vl-dot{width:6px;height:6px;border-radius:50%;background:#8d8ac0;animation:vlDot 1.2s ease-in-out infinite}
+  .vl-img{display:block;max-width:min(92vw,560px);max-height:80vh;width:auto;height:auto}
+  .vl-sub{margin-top:6px;display:flex;gap:7px}
+  .vl-dot{width:7px;height:7px;border-radius:50%;background:#9a97c8;animation:vlDot 1.2s ease-in-out infinite}
   .vl-dot:nth-child(2){animation-delay:.2s}.vl-dot:nth-child(3){animation-delay:.4s}
-  @media (prefers-reduced-motion:reduce){.vl-lid-path,.vl-dot{animation:none}}
+  @keyframes vlDot{0%,100%{opacity:.3}50%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.vl-dot{animation:none}}
 
   /* ---------- HUD ---------- */
   #hud{position:fixed;inset:0;pointer-events:none;z-index:50}
@@ -74,18 +65,10 @@
 <div id="game"></div>
 
 <!-- ===== Velion loader =====
-     Chameleon art loads from velion-cham.png (placed next to this file).
-     To use your original inline data-URI instead, just swap the src on .vl-cham. -->
+     Your chameleon + wordmark, cropped from your loading-screen art into velion-loader.png.
+     Keep velion-loader.png next to this file when you commit. -->
 <div class="vl-loading" id="loader">
-  <div class="vl-cham-wrap">
-    <img class="vl-cham" src="velion-cham.png" alt="Velion"
-         onerror="this.style.display='none';var e=this.parentNode.querySelector('.vl-eyelid');if(e)e.style.display='none';">
-    <svg class="vl-eyelid" viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg">
-      <defs><clipPath id="vlEyeClip"><circle cx="0" cy="0" r="50"/></clipPath></defs>
-      <path class="vl-lid-path" clip-path="url(#vlEyeClip)" d="M -50 -50 L 50 -50 L 50 -50 Q 0 -50 -50 -50 Z"/>
-    </svg>
-  </div>
-  <div class="vl-word">VELION</div>
+  <img class="vl-img" src="velion-loader.png" alt="Velion">
   <div class="vl-sub"><div class="vl-dot"></div><div class="vl-dot"></div><div class="vl-dot"></div></div>
 </div>
 
@@ -112,9 +95,11 @@
   <p>Hold to pee and claim objects. The longer you mark, the harder to steal.
      Run low and you must trot home to refuel — get caught empty in enemy turf and you're vulnerable.</p>
   <div class="keys">
-    <b>WASD / Arrows</b> move &nbsp;·&nbsp; <b>Mouse</b> look &nbsp;·&nbsp; <b>Shift</b> sprint<br>
-    <b>Space</b> (or left-click) pee &nbsp;·&nbsp; <b>P</b> power-poop (trump) &nbsp;·&nbsp; <b>C</b> 1st/3rd person
+    <b>↑ ↓</b> walk &nbsp;·&nbsp; <b>← →</b> turn (hold both to curve) &nbsp;·&nbsp; <b>Shift</b> sprint<br>
+    hold <b>⌘ Cmd</b> (or <b>Ctrl</b>) + arrows to look around &nbsp;·&nbsp; <b>C</b> 1st/3rd person<br>
+    <b>Space</b> pee &nbsp;·&nbsp; <b>P</b> power-poop (trump)
   </div>
+  <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
   <div class="cta">Click to play</div>
 </div>
 
@@ -155,6 +140,9 @@ const TUNE = {
   SPEED: 16,         // units/sec
   SPRINT: 1.7,
   VULN_SPEED: 0.55,
+  TURN: 2.6,         // rad/sec — heading turn rate (left/right arrows)
+  LOOK_YAW: 1.9,     // rad/sec — camera pan while holding Cmd
+  LOOK_PITCH: 1.4,   // rad/sec — camera tilt while holding Cmd
   OBJ_PER_BLOCK: 4,
 };
 
@@ -181,7 +169,8 @@ function blockIndexAt(x,z){
 
 let scene, camera, renderer, clock;
 let dogs = [], objects = [], tiles = [];
-let yaw = 0, pitch = 0.12, firstPerson = false;
+let yaw = 0, pitch = 0.12, camYaw = 0, firstPerson = false;
+const PITCH_DEFAULT = 0.12;
 let timeLeft = TUNE.ROUND_TIME, running = false, over = false, lastResult = null;
 let stats = freshStats();
 const keys = {};
@@ -404,12 +393,26 @@ function stepDog(dog,dt,owners){
   const p = dog.mesh.position;
   let mx=0, mz=0, sprint=false;
   if (dog.id==='you'){
-    const f = { x:Math.sin(yaw), z:Math.cos(yaw) };
-    const rt = { x:f.z, z:-f.x };
-    if (keys['w']||keys['arrowup'])   { mx+=f.x; mz+=f.z; }
-    if (keys['s']||keys['arrowdown']) { mx-=f.x; mz-=f.z; }
-    if (keys['d']||keys['arrowright']){ mx+=rt.x; mz+=rt.z; }
-    if (keys['a']||keys['arrowleft']) { mx-=rt.x; mz-=rt.z; }
+    const L = keys['arrowleft']||keys['a'];
+    const R = keys['arrowright']||keys['d'];
+    const U = keys['arrowup']||keys['w'];
+    const Dn= keys['arrowdown']||keys['s'];
+    if (keys['meta']){
+      // ---- LOOK mode: hold Cmd/Ctrl, arrows adjust point of view (no driving) ----
+      if (L) camYaw += TUNE.LOOK_YAW*dt;
+      if (R) camYaw -= TUNE.LOOK_YAW*dt;
+      if (U) pitch = clamp(pitch + TUNE.LOOK_PITCH*dt, -0.5, 0.9);
+      if (Dn)pitch = clamp(pitch - TUNE.LOOK_PITCH*dt, -0.5, 0.9);
+    } else {
+      // ---- DRIVE mode: left/right TURN your heading, up/down walk along it ----
+      if (L) yaw += TUNE.TURN*dt;          // turn left
+      if (R) yaw -= TUNE.TURN*dt;          // turn right
+      const fwd = (U?1:0) - (Dn?1:0);
+      mx = Math.sin(yaw)*fwd; mz = Math.cos(yaw)*fwd;
+      // ease the view back behind the dog when not actively looking
+      camYaw += (0 - camYaw) * Math.min(1, dt*7);
+      pitch  += (PITCH_DEFAULT - pitch) * Math.min(1, dt*7);
+    }
     sprint = !!keys['shift'];
     dog.peeing = !!keys[' '];
     dog.mesh.rotation.y = yaw;
@@ -502,9 +505,10 @@ function updateVisuals(){
 function updateCamera(){
   const dog = dogs[0], p = dog.mesh.position;
   const headY = 1.45;
-  const f = { x:Math.sin(yaw), z:Math.cos(yaw) };
+  const vy = yaw + camYaw;                          // view yaw = heading + look offset
+  const f = { x:Math.sin(vy), z:Math.cos(vy) };
   if (firstPerson){
-    camera.position.set(p.x + f.x*0.55, p.y + headY, p.z + f.z*0.55);
+    camera.position.set(p.x + Math.sin(yaw)*0.55, p.y + headY, p.z + Math.cos(yaw)*0.55);
     const cp = Math.cos(pitch);
     camera.lookAt(camera.position.x + f.x*cp, camera.position.y + Math.sin(pitch), camera.position.z + f.z*cp);
   } else {
@@ -600,26 +604,35 @@ function bindInput(){
   document.addEventListener('pointerlockchange', ()=>{
     running = (document.pointerLockElement===cv) && !over;
     if (running) showOnly(null);
-    else if (!over) showOnly('pauseOv');
+    else { for (const kk in keys) keys[kk]=false; if (!over) showOnly('pauseOv'); }
   });
-  document.addEventListener('mousemove', e=>{
-    if (document.pointerLockElement!==cv) return;
-    yaw -= e.movementX*0.0024;
-    pitch = clamp(pitch - e.movementY*0.0024, -0.6, 0.9);
-  });
+  // Trackpad/mouse no longer steers. Left-click is just an extra "pee" button.
   document.addEventListener('mousedown', e=>{ if (document.pointerLockElement===cv && e.button===0) keys[' ']=true; });
   document.addEventListener('mouseup',   e=>{ if (e.button===0) keys[' ']=false; });
 
   addEventListener('keydown', e=>{
     const k=e.key.toLowerCase();
-    if ([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k)) e.preventDefault();
+    const arrow = ['arrowup','arrowdown','arrowleft','arrowright'].includes(k);
+    if (k===' ' || arrow) e.preventDefault();
+    // stop Cmd+Arrow from triggering browser back/forward/scroll
+    if ((e.metaKey||e.ctrlKey) && arrow) e.preventDefault();
     keys[k]=true;
     if (e.key==='Shift') keys['shift']=true;
+    if (e.key==='Meta'||e.key==='Control') keys['meta']=true;
     if (!running) return;
     if (k==='c'){ firstPerson=!firstPerson; dogs[0].mesh.visible=!firstPerson; }
     if (k==='p') tryPoop(dogs[0]);
   });
-  addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; if(e.key==='Shift') keys['shift']=false; });
+  addEventListener('keyup', e=>{
+    keys[e.key.toLowerCase()]=false;
+    if (e.key==='Shift') keys['shift']=false;
+    if (e.key==='Meta'||e.key==='Control'){
+      keys['meta']=false;
+      // macOS drops keyups for other keys while Cmd is held — clear drive keys so nothing sticks
+      ['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].forEach(kk=>keys[kk]=false);
+    }
+  });
+  addEventListener('blur', ()=>{ for (const kk in keys) keys[kk]=false; });
 
   addEventListener('resize', ()=>{
     camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
