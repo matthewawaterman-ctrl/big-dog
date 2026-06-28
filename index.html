@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-009">
+<meta name="build" content="bd-010">
 <title>BIG DOG</title>
 <style>
   html,body{height:100%;margin:0;background:#0d0a22;overflow:hidden;
@@ -175,6 +175,7 @@ const ROAD  = 9;              // road width framing every block
 const B = BLOCK + ROAD;       // block-center spacing (72)
 const HALF = 1.5*BLOCK + 2*ROAD;   // map half-extent — leaves a full road around the outer blocks
 const BOUND = HALF - 1.2;
+const SPAWN_R = 17;           // dogs start this far from home, out on the grass (clear of the doghouse)
 
 const OWNER = {
   you:  { hex: 0x3aa0ff, css: '#3aa0ff', name: 'YOU' },
@@ -348,7 +349,7 @@ function spawnDogs(){
   const mk = id => {
     const mesh = makeDog(oc(id).hex);
     const ang = id==='you'?0 : id==='ai1'?2.1 : 4.2;
-    mesh.position.set(Math.cos(ang)*2, 0, Math.sin(ang)*2);
+    mesh.position.set(Math.cos(ang)*SPAWN_R, 0, Math.sin(ang)*SPAWN_R);
     const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1,6),
       new THREE.MeshBasicMaterial({ color:0xffe34d, transparent:true, opacity:0.85 }));
     stream.visible = false; scene.add(stream);
@@ -677,7 +678,7 @@ function restart(){
   for (const o of objects){ o.claim=0; o.owner=null; o.lock=0; o.contestedBy={}; }
   dogs.forEach((d,i)=>{
     const ang = i===0?0 : i===1?2.1:4.2;
-    d.mesh.position.set(Math.cos(ang)*2,0,Math.sin(ang)*2);
+    d.mesh.position.set(Math.cos(ang)*SPAWN_R,0,Math.sin(ang)*SPAWN_R);
     d.bladder=TUNE.BLADDER_MAX; d.poop=TUNE.POOP_MAX; d.foodT=0; d.peeing=false; d.vulnerable=false;
     d.ai={state:'roam',target:null,think:0}; d.stream.visible=false; d.walk=0;
   });
