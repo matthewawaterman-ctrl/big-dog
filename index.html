@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-010">
+<meta name="build" content="bd-012">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
   html,body{height:100%;margin:0;background:#0d0a22;overflow:hidden;
@@ -156,26 +157,33 @@ const TUNE = {
   FOOD_TIME: 9,      // sec at home to regain 1 poop charge
   POOP_LOCK: 8,      // sec an object is locked from recapture after a poop
   MARK_RANGE: 5,     // world units you must be within to affect an object
-  HOME_R: 10,        // refuel zone radius
+  HOME_R: 16,        // refuel zone radius
   BLADDER_MAX: 100,
   POOP_MAX: 1,
-  SPEED: 28,         // units/sec (bumped for the bigger map)
+  SPEED: 44,         // units/sec (bumped for the much bigger map)
   SPRINT: 1.7,
   VULN_SPEED: 0.55,
   TURN: 3.2,         // rad/sec — heading turn rate (left/right arrows)
   CAM_FOLLOW: 4,     // how fast the camera swings behind you when you start walking (lower = lazier)
   LOOK_YAW: 1.9,     // rad/sec — camera pan while holding Cmd
   LOOK_PITCH: 1.4,   // rad/sec — camera tilt while holding Cmd
-  OBJ_PER_BLOCK: 7,  // more objects to fill the bigger blocks
+  OBJ_PER_BLOCK: 7,  // objects per block — unchanged
 };
 
 // ---- world grid ----
-const BLOCK = 63;             // grass block size (≈3× the old block)
-const ROAD  = 9;              // road width framing every block
-const B = BLOCK + ROAD;       // block-center spacing (72)
-const HALF = 1.5*BLOCK + 2*ROAD;   // map half-extent — leaves a full road around the outer blocks
+const BLOCK = 189;            // grass block size — each block 3× longer again
+const ROAD  = 18;             // road width framing every block
+const B = BLOCK + ROAD;       // block-center spacing
+const HALF = 1.5*BLOCK + 2*ROAD;   // map half-extent — full road around the outer blocks
 const BOUND = HALF - 1.2;
-const SPAWN_R = 17;           // dogs start this far from home, out on the grass (clear of the doghouse)
+const SPAWN_R = 20;           // how far a dog spawns from its house, out on the grass
+
+// each dog has its own house to refuel at (player center, opponents in opposite corners)
+const HOMES = {
+  you: { x: 0,   z: 0   },
+  ai1: { x: -B,  z: -B  },
+  ai2: { x: B,   z: B   },
+};
 
 const OWNER = {
   you:  { hex: 0x3aa0ff, css: '#3aa0ff', name: 'YOU' },
@@ -212,9 +220,9 @@ function freshStats(){ return { marks:0, contests:0, poops:0, vulnSec:0, farthes
 function initThree(){
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x9fd6ff);
-  scene.fog = new THREE.Fog(0x9fd6ff, 95, 300);
+  scene.fog = new THREE.Fog(0x9fd6ff, 220, 820);
 
-  camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.1, 500);
+  camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.1, 1600);
   renderer = new THREE.WebGLRenderer({ antialias:true });
   renderer.setSize(innerWidth, innerHeight);
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -224,13 +232,13 @@ function initThree(){
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x4a5a44, 0.95));
   const sun = new THREE.DirectionalLight(0xfff2dc, 0.9);
-  sun.position.set(70, 110, 50);
+  sun.position.set(120, 190, 90);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  const d = 130;
+  const d = 210;
   sun.shadow.camera.left = -d; sun.shadow.camera.right = d;
   sun.shadow.camera.top = d; sun.shadow.camera.bottom = -d;
-  sun.shadow.camera.near = 1; sun.shadow.camera.far = 320;
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 700;
   scene.add(sun);
 
   clock = new THREE.Clock();
@@ -254,25 +262,36 @@ function buildWorld(){
   }
 
   const fenceMat = new THREE.MeshLambertMaterial({ color:0xece4d2 });
-  for (let i=-HALF; i<=HALF; i+=5){
+  for (let i=-HALF; i<=HALF; i+=8){
     [[i,-HALF],[i,HALF],[-HALF,i],[HALF,i]].forEach(([x,z])=>{
       const p = new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,2.4,6), fenceMat);
       p.position.set(x,1.2,z); scene.add(p);
     });
   }
 
-  const home = new THREE.Group();
-  const hbody = new THREE.Mesh(new THREE.BoxGeometry(5,3.2,5), new THREE.MeshLambertMaterial({color:0x8a5a33}));
-  hbody.position.y = 1.6; hbody.castShadow = true; home.add(hbody);
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(4.3,2.4,4), new THREE.MeshLambertMaterial({color:0x6b3f22}));
-  roof.position.y = 4.4; roof.rotation.y = Math.PI/4; home.add(roof);
-  const door = new THREE.Mesh(new THREE.BoxGeometry(1.6,2,0.2), new THREE.MeshLambertMaterial({color:0x140d08}));
-  door.position.set(0,1,2.5); home.add(door);
-  home.scale.set(1.7,1.7,1.7);
-  scene.add(home);
-  const ring = new THREE.Mesh(new THREE.RingGeometry(TUNE.HOME_R-0.35, TUNE.HOME_R, 44),
-    new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.45, side:THREE.DoubleSide }));
-  ring.rotation.x = -Math.PI/2; ring.position.y = 0.05; scene.add(ring);
+  // one doghouse per dog, roof + ring tinted to that dog's color
+  const fence2 = new THREE.MeshLambertMaterial({ color:0xece4d2 });
+  for (const id of ['you','ai1','ai2']){
+    const h = HOMES[id], col = oc(id).hex;
+    const home = new THREE.Group();
+    const hbody = new THREE.Mesh(new THREE.BoxGeometry(5,3.2,5), new THREE.MeshLambertMaterial({color:0x8a5a33}));
+    hbody.position.y = 1.6; hbody.castShadow = true; home.add(hbody);
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(4.3,2.4,4), new THREE.MeshLambertMaterial({color:col}));
+    roof.position.y = 4.4; roof.rotation.y = Math.PI/4; roof.castShadow = true; home.add(roof);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(1.6,2,0.2), new THREE.MeshLambertMaterial({color:0x140d08}));
+    door.position.set(0,1,2.5); home.add(door);
+    // a tall pole flag so you can find each house across the big map
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,11,6), fence2);
+    pole.position.y = 5.5; home.add(pole);
+    const flag = new THREE.Mesh(new THREE.BoxGeometry(2.6,1.5,0.12), new THREE.MeshBasicMaterial({color:col}));
+    flag.position.set(1.4,10.2,0); home.add(flag);
+    home.scale.set(1.7,1.7,1.7);
+    home.position.set(h.x,0,h.z); scene.add(home);
+
+    const ring = new THREE.Mesh(new THREE.RingGeometry(TUNE.HOME_R-0.6, TUNE.HOME_R, 48),
+      new THREE.MeshBasicMaterial({ color:col, transparent:true, opacity:0.55, side:THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI/2; ring.position.set(h.x,0.05,h.z); scene.add(ring);
+  }
 
   buildObjects();
   spawnDogs();
@@ -334,54 +353,64 @@ function makeDog(hex){
   const head = part(new THREE.BoxGeometry(0.8,0.8,0.8), mat, 0,1.35,1.05);
   part(new THREE.BoxGeometry(0.42,0.36,0.42), mat, 0,1.2,1.5);
   part(new THREE.BoxGeometry(0.18,0.18,0.12), dark, 0,1.25,1.73);
-  part(new THREE.BoxGeometry(0.2,0.36,0.15), mat, -0.3,1.82,0.98);
-  part(new THREE.BoxGeometry(0.2,0.36,0.15), mat, 0.3,1.82,0.98);
+  const earL = part(new THREE.BoxGeometry(0.2,0.36,0.15), mat, -0.3,1.82,0.98);
+  const earR = part(new THREE.BoxGeometry(0.2,0.36,0.15), mat, 0.3,1.82,0.98);
   const legs = [];
   for (const sx of [-0.35,0.35]) for (const sz of [-0.6,0.6])
     legs.push(part(new THREE.CylinderGeometry(0.16,0.16,0.9,8), mat, sx,0.45,sz));
-  const tail = part(new THREE.CylinderGeometry(0.1,0.16,0.95,8), mat, 0,1.2,-1.0);
-  tail.rotation.x = Math.PI/3;
-  g.userData = { head, legs, tail };
+  // tail on a pivot so it wags from the rump
+  const tailPivot = new THREE.Group(); tailPivot.position.set(0,1.2,-0.7); g.add(tailPivot);
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.16,0.95,8), mat);
+  tail.position.set(0,0,-0.35); tail.rotation.x = Math.PI/3; tail.castShadow = true; tailPivot.add(tail);
+  g.userData = { head, legs, tail:tailPivot, ears:[earL,earR] };
   return g;
 }
 
 function spawnDogs(){
   const mk = id => {
+    const isYou = id==='you';
     const mesh = makeDog(oc(id).hex);
-    const ang = id==='you'?0 : id==='ai1'?2.1 : 4.2;
-    mesh.position.set(Math.cos(ang)*SPAWN_R, 0, Math.sin(ang)*SPAWN_R);
+    const home = HOMES[id];
+    const spawn = spawnSpot(home);
+    mesh.position.set(spawn.x, 0, spawn.z);
+
     const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1,6),
       new THREE.MeshBasicMaterial({ color:0xffe34d, transparent:true, opacity:0.85 }));
     stream.visible = false; scene.add(stream);
 
-    // owner-colored ground ring so every dog is easy to spot
-    const isYou = id==='you';
-    const ring = new THREE.Mesh(
-      new THREE.RingGeometry(isYou?1.5:1.25, isYou?1.95:1.6, 32),
-      new THREE.MeshBasicMaterial({ color:oc(id).hex, transparent:true, opacity:isYou?0.9:0.6, side:THREE.DoubleSide }));
-    ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; scene.add(ring);
-
-    // the player is "you" — make the avatar bigger and give it a heading arrow
-    let headGrp = null;
+    // opponents keep a ground ring so you can spot them; the player uses an arrow instead
+    let ring = null, headGrp = null;
     if (isYou){
       mesh.scale.set(1.18,1.18,1.18);
       headGrp = new THREE.Group();
-      const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.55,1.3,3),
+      const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.6,1.5,3),
         new THREE.MeshBasicMaterial({ color:0xa9e4ff }));
       arrow.rotation.x = -Math.PI/2;          // lay flat, tip toward +Z
-      arrow.position.set(0,0.08,2.3);          // out in front of the dog
+      arrow.position.set(0,0.08,2.4);          // out in front of the dog
       headGrp.add(arrow);
       scene.add(headGrp);
+    } else {
+      ring = new THREE.Mesh(new THREE.RingGeometry(1.25,1.6,32),
+        new THREE.MeshBasicMaterial({ color:oc(id).hex, transparent:true, opacity:0.6, side:THREE.DoubleSide }));
+      ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; scene.add(ring);
     }
 
-    return { id, mesh, stream, ring, headGrp, bladder:TUNE.BLADDER_MAX, poop:TUNE.POOP_MAX, foodT:0,
+    return { id, mesh, stream, ring, headGrp, home, bladder:TUNE.BLADDER_MAX, poop:TUNE.POOP_MAX, foodT:0,
              peeing:false, vulnerable:false, ai:{ state:'roam', target:null, think:0 }, walk:0 };
   };
   dogs = [ mk('you'), mk('ai1'), mk('ai2') ];
   dogs[0].mesh.rotation.y = yaw;
 }
 
-// keep rings under each dog and the player's heading arrow pointed where you face
+// a spot just outside a house, offset toward the map centre so the dog faces the action
+function spawnSpot(home){
+  const len = Math.hypot(home.x, home.z) || 1;
+  const ux = home.x===0 && home.z===0 ? 1 : -home.x/len;
+  const uz = home.x===0 && home.z===0 ? 0 : -home.z/len;
+  return { x: home.x + ux*SPAWN_R, z: home.z + uz*SPAWN_R };
+}
+
+// keep opponent rings under them and the player's heading arrow pointed where you face
 function updateMarkers(){
   for (const d of dogs){
     if (d.ring) d.ring.position.set(d.mesh.position.x, 0.06, d.mesh.position.z);
@@ -436,7 +465,7 @@ function aiThink(dog,dt){
   const ai=dog.ai; ai.think-=dt;
   if (dog.bladder<16 && ai.state!=='retreat'){ ai.state='retreat'; ai.target=null; }
   if (ai.state==='retreat'){
-    if (Math.hypot(dog.mesh.position.x,dog.mesh.position.z)<TUNE.HOME_R && dog.bladder>82){ ai.state='roam'; ai.target=null; }
+    if (Math.hypot(dog.mesh.position.x-dog.home.x, dog.mesh.position.z-dog.home.z)<TUNE.HOME_R && dog.bladder>82){ ai.state='roam'; ai.target=null; }
     return;
   }
   if (ai.think>0 && ai.target) return;
@@ -487,7 +516,7 @@ function stepDog(dog,dt,owners){
     dog.mesh.rotation.y = yaw;
   } else {
     aiThink(dog,dt);
-    const t = dog.ai.state==='retreat' ? {x:0,z:0} : (dog.ai.target||{x:p.x,z:p.z});
+    const t = dog.ai.state==='retreat' ? dog.home : (dog.ai.target||{x:p.x,z:p.z});
     const dx=t.x-p.x, dz=t.z-p.z, m=Math.hypot(dx,dz);
     if (m>0.6){ mx=dx/m; mz=dz/m; dog.mesh.rotation.y=Math.atan2(mx,mz); }
     dog.peeing = false;
@@ -515,7 +544,8 @@ function stepDog(dog,dt,owners){
     orientCyl(dog.stream, a, b);
   } else dog.stream.visible=false;
 
-  if (Math.hypot(p.x,p.z) < TUNE.HOME_R){
+  const homeDist = Math.hypot(p.x-dog.home.x, p.z-dog.home.z);
+  if (homeDist < TUNE.HOME_R){
     dog.bladder = clamp(dog.bladder + TUNE.WATER*dt, 0, TUNE.BLADDER_MAX);
     dog.foodT += dt;
     if (dog.foodT>=TUNE.FOOD_TIME && dog.poop<TUNE.POOP_MAX){ dog.poop++; dog.foodT=0; }
@@ -524,25 +554,36 @@ function stepDog(dog,dt,owners){
   const bo = owners[blockIndexAt(p.x,p.z)];
   dog.vulnerable = (dog.bladder<=0 && dog.poop<=0 && bo && bo!==dog.id);
 
+  const now = performance.now()*0.001;
   const sw = Math.sin(dog.walk*1.4);
-  dog.mesh.position.y = Math.abs(sw)*0.12;
+  const running = moved>0 ? 1 : 0;
+  dog.mesh.position.y = Math.abs(sw)*0.16*running;            // bob while trotting
   dog.legLift = (dog.legLift||0) + (((dog.peeing?1:0) - (dog.legLift||0)) * Math.min(1, dt*9));
-  if (dog.mesh.userData.legs){
-    const legs = dog.mesh.userData.legs;
-    legs.forEach((L,i)=>{
-      const swing = Math.sin(dog.walk*1.4 + (i%2?Math.PI:0))*0.5*(moved>0?1:0.05);
+  const ud = dog.mesh.userData;
+  if (ud.legs){
+    ud.legs.forEach((L,i)=>{
+      const swing = Math.sin(dog.walk*1.4 + (i%2?Math.PI:0)) * (running?0.85:0.04);
       L.rotation.x = swing * (i===2 ? (1-dog.legLift) : 1);
-      L.rotation.z = (i===2) ? -dog.legLift*1.25 : 0;   // hike the back-right leg up to pee
+      L.rotation.z = (i===2) ? -dog.legLift*1.3 : 0;          // hike the back-right leg up to pee
     });
-    dog.mesh.userData.tail.rotation.z = sw*0.4 + dog.legLift*0.35;
+    // tail: always wagging, faster when moving or peeing (happy dog)
+    const wagSpeed = 6 + running*6 + dog.legLift*6;
+    ud.tail.rotation.y = Math.sin(now*wagSpeed)*0.6;
+    ud.tail.rotation.z = dog.legLift*0.3;
+    // ears bounce a touch while trotting
+    if (ud.ears){
+      const flap = Math.sin(dog.walk*1.4)*0.25*running;
+      ud.ears[0].rotation.x = flap; ud.ears[1].rotation.x = flap;
+    }
+    // head bobs slightly while running
+    if (ud.head) ud.head.position.y = 1.35 + Math.abs(Math.sin(dog.walk*1.4))*0.06*running;
   }
 
   if (dog.id==='you'){
     if (dog.vulnerable) stats.vulnSec += dt;
-    const dh = Math.hypot(p.x,p.z);
-    stats.farthest = Math.max(stats.farthest, dh);
-    if (dog.bladder<20 && dh>14) stats.wasLow=true;
-    if (stats.wasLow && dh<TUNE.HOME_R){ stats.retreats++; stats.wasLow=false; }
+    stats.farthest = Math.max(stats.farthest, homeDist);
+    if (dog.bladder<20 && homeDist>20) stats.wasLow=true;
+    if (stats.wasLow && homeDist<TUNE.HOME_R){ stats.retreats++; stats.wasLow=false; }
   }
 }
 
@@ -642,7 +683,14 @@ function updateMinimap(owners){
     mctx.strokeRect(c*cell,r*cell,cell,cell);
   }
   const tx = x => (x+HALF)/(HALF*2)*W, tz = z => (z+HALF)/(HALF*2)*W;
-  mctx.fillStyle='rgba(255,255,255,0.9)'; mctx.fillRect(tx(0)-3,tz(0)-3,6,6);
+  // each house as a small colored square (outlined)
+  for (const id of ['you','ai1','ai2']){
+    const h = HOMES[id];
+    mctx.fillStyle = oc(id).css;
+    mctx.fillRect(tx(h.x)-4, tz(h.z)-4, 8, 8);
+    mctx.lineWidth=1.5; mctx.strokeStyle='rgba(255,255,255,0.85)';
+    mctx.strokeRect(tx(h.x)-4, tz(h.z)-4, 8, 8);
+  }
   for (const d of dogs){
     mctx.beginPath(); mctx.arc(tx(d.mesh.position.x), tz(d.mesh.position.z), d.id==='you'?7:5, 0, 7);
     mctx.fillStyle = oc(d.id).css; mctx.fill();
@@ -677,8 +725,8 @@ function endRound(){
 function restart(){
   for (const o of objects){ o.claim=0; o.owner=null; o.lock=0; o.contestedBy={}; }
   dogs.forEach((d,i)=>{
-    const ang = i===0?0 : i===1?2.1:4.2;
-    d.mesh.position.set(Math.cos(ang)*SPAWN_R,0,Math.sin(ang)*SPAWN_R);
+    const s = spawnSpot(d.home);
+    d.mesh.position.set(s.x,0,s.z);
     d.bladder=TUNE.BLADDER_MAX; d.poop=TUNE.POOP_MAX; d.foodT=0; d.peeing=false; d.vulnerable=false;
     d.ai={state:'roam',target:null,think:0}; d.stream.visible=false; d.walk=0;
   });
