@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-013">
+<meta name="build" content="bd-014">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -176,14 +176,22 @@ const ROAD  = 18;             // road width framing every block
 const B = BLOCK + ROAD;       // block-center spacing
 const HALF = 1.5*BLOCK + 2*ROAD;   // map half-extent — full road around the outer blocks
 const BOUND = HALF - 1.2;
-const SPAWN_R = 20;           // how far a dog spawns from its house, out on the grass
+const SPAWN_R = 24;           // how far a dog spawns from its home house, out on the grass
 
-// each dog has its own house to refuel at (player center, opponents in opposite corners)
+// house layout constants (shared by the builder and the homes)
+const HB = BLOCK/2;                 // block half-size
+const HOUSE_INSET = 20;             // house centre this far inside the block edge
+const HOUSE_FRONT = HB - HOUSE_INSET;
+
+// each dog's home is a real subdivision house — the top-edge middle house of a block.
+// you: centre block · red: back-left block · orange: front-right block
+const HOME_BLOCK = { you:[1,1], ai1:[0,0], ai2:[2,2] };
 const HOMES = {
-  you: { x: 0,   z: 0   },
-  ai1: { x: -B,  z: -B  },
-  ai2: { x: B,   z: B   },
+  you: { x: (HOME_BLOCK.you[0]-1)*B, z: (HOME_BLOCK.you[1]-1)*B + HOUSE_FRONT },
+  ai1: { x: (HOME_BLOCK.ai1[0]-1)*B, z: (HOME_BLOCK.ai1[1]-1)*B + HOUSE_FRONT },
+  ai2: { x: (HOME_BLOCK.ai2[0]-1)*B, z: (HOME_BLOCK.ai2[1]-1)*B + HOUSE_FRONT },
 };
+const houseBoxes = [];        // AABBs for collision, filled while building the subdivision
 
 const OWNER = {
   you:  { hex: 0x3aa0ff, css: '#3aa0ff', name: 'YOU' },
@@ -274,26 +282,11 @@ function buildWorld(){
     w.position.set(x,wh/2,z); w.castShadow = true; scene.add(w);
   });
 
-  const fence2 = new THREE.MeshLambertMaterial({ color:0xece4d2 });
+  // refuel ring at each dog's home house (the house itself is built in buildObjects)
   for (const id of ['you','ai1','ai2']){
     const h = HOMES[id], col = oc(id).hex;
-    const home = new THREE.Group();
-    const hbody = new THREE.Mesh(new THREE.BoxGeometry(5,3.2,5), new THREE.MeshLambertMaterial({color:0x8a5a33}));
-    hbody.position.y = 1.6; hbody.castShadow = true; home.add(hbody);
-    const roof = new THREE.Mesh(new THREE.ConeGeometry(4.3,2.4,4), new THREE.MeshLambertMaterial({color:col}));
-    roof.position.y = 4.4; roof.rotation.y = Math.PI/4; roof.castShadow = true; home.add(roof);
-    const door = new THREE.Mesh(new THREE.BoxGeometry(1.6,2,0.2), new THREE.MeshLambertMaterial({color:0x140d08}));
-    door.position.set(0,1,2.5); home.add(door);
-    // a tall pole flag so you can find each house across the big map
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,11,6), fence2);
-    pole.position.y = 5.5; home.add(pole);
-    const flag = new THREE.Mesh(new THREE.BoxGeometry(2.6,1.5,0.12), new THREE.MeshBasicMaterial({color:col}));
-    flag.position.set(1.4,10.2,0); home.add(flag);
-    home.scale.set(1.7,1.7,1.7);
-    home.position.set(h.x,0,h.z); scene.add(home);
-
-    const ring = new THREE.Mesh(new THREE.RingGeometry(TUNE.HOME_R-0.6, TUNE.HOME_R, 48),
-      new THREE.MeshBasicMaterial({ color:col, transparent:true, opacity:0.55, side:THREE.DoubleSide }));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(TUNE.HOME_R-0.9, TUNE.HOME_R, 48),
+      new THREE.MeshBasicMaterial({ color:col, transparent:true, opacity:0.6, side:THREE.DoubleSide }));
     ring.rotation.x = -Math.PI/2; ring.position.set(h.x,0.05,h.z); scene.add(ring);
   }
 
@@ -328,27 +321,47 @@ function makeObjectMesh(type, weight){
   return g;
 }
 
-// suburban house — 2 meshes (body + hip roof), varied colors
+// suburban house — body + hip roof, varied colors; footprint stored for collision
 const HOUSE_WALLS = [0xd9cbb2,0xb7c9d6,0xc9d6b7,0xd6b7b7,0xcfc3d6,0xd8cdb0,0xbfc7cc,0xe0c9a8];
 const HOUSE_ROOFS = [0x6b4a2b,0x556677,0x4f6b3f,0x7a3f3f,0x554f6b,0x5a4a2a,0x555b60,0x6b5230];
-function makeHouse(){
+function makeHouse(homeCol){
   const g = new THREE.Group();
   const k = (Math.random()*HOUSE_WALLS.length)|0;
-  const HW=20+Math.random()*5, HD=15+Math.random()*3, HH=7+Math.random()*1.6;
+  const HW=22+Math.random()*5, HD=16+Math.random()*3, HH=8+Math.random()*1.8;
   const body = new THREE.Mesh(new THREE.BoxGeometry(HW,HH,HD), new THREE.MeshLambertMaterial({color:HOUSE_WALLS[k]}));
   body.position.y=HH/2; body.castShadow=true; body.receiveShadow=true; g.add(body);
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(1,1,4), new THREE.MeshLambertMaterial({color:HOUSE_ROOFS[k]}));
-  roof.scale.set(HW*0.64, 5, HD*0.64); roof.position.y=HH+2.5; roof.rotation.y=Math.PI/4; roof.castShadow=true; g.add(roof);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(1,1,4),
+    new THREE.MeshLambertMaterial({color: homeCol!=null ? homeCol : HOUSE_ROOFS[k]}));
+  roof.scale.set(HW*0.64, 5.5, HD*0.64); roof.position.y=HH+2.75; roof.rotation.y=Math.PI/4; roof.castShadow=true; g.add(roof);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(3,4.2,0.4), new THREE.MeshLambertMaterial({color:0x3a2a1a}));
+  door.position.set(0,2.1,HD/2+0.05); g.add(door);
+  if (homeCol!=null){   // flag pole so you can spot your home house across the map
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.25,26,6), new THREE.MeshLambertMaterial({color:0xece4d2}));
+    pole.position.set(-HW*0.4, 13, 0); g.add(pole);
+    const flag = new THREE.Mesh(new THREE.BoxGeometry(5,3,0.2), new THREE.MeshBasicMaterial({color:homeCol}));
+    flag.position.set(-HW*0.4+2.6, 24, 0); g.add(flag);
+  }
+  g.userData.HW = HW; g.userData.HD = HD;
   return g;
 }
 
-// Build the subdivision: 18 houses ringing each block (5 + 5 + 4 + 4), facing the street,
-// with one markable "obstacle" at each house's curb.
+// Build the subdivision: 18 houses ringing each block, facing the street, with a curb obstacle
+// at each. Records collision boxes and drops backyard hedges between neighbours.
 function buildObjects(){
   let id = 0;
-  const HB = BLOCK/2, step = BLOCK/5, inset = 19, curbAt = HB - 3;
+  const step = BLOCK/5, inset = HOUSE_INSET, curbAt = HB - 3;
   const curbTypes = ['mailbox','mailbox','hydrant','lamp','can','tree'];
-  const placeHouse = (x,z,rotY)=>{ const h=makeHouse(); h.position.set(x,0,z); h.rotation.y=rotY; scene.add(h); };
+  const homeAt = { '1,1':'you', '0,0':'ai1', '2,2':'ai2' };
+
+  const placeHouse = (x,z,rotY,homeId)=>{
+    const h = makeHouse(homeId!=null ? oc(homeId).hex : undefined);
+    h.position.set(x,0,z); h.rotation.y=rotY; scene.add(h);
+    // axis-aligned collision box (footprint depends on facing) + a 1u margin for the dog
+    const along = Math.abs(Math.sin(rotY))>0.5;   // facing ±x -> depth runs along x
+    const hx = (along ? h.userData.HD : h.userData.HW)/2 + 1.0;
+    const hz = (along ? h.userData.HW : h.userData.HD)/2 + 1.0;
+    houseBoxes.push({ x0:x-hx, x1:x+hx, z0:z-hz, z1:z+hz });
+  };
   const placeCurb = (ox,oz,blk)=>{
     const type = curbTypes[(Math.random()*curbTypes.length)|0];
     const weight = 1 + ((Math.random()*3)|0);
@@ -358,24 +371,36 @@ function buildObjects(){
     disc.rotation.x = -Math.PI/2; disc.position.set(ox,0.05,oz); scene.add(disc);
     objects.push({ id:id++, x:ox, z:oz, block:blk, weight, claim:0, owner:null, lock:0, contestedBy:{}, mesh, disc });
   };
+  // hedge segment (low green box) centered at x,z with the given size
+  const hedgeMat = new THREE.MeshLambertMaterial({ color:0x4f8f46 });
+  const hedge = (x,z,sx,sz)=>{
+    const m = new THREE.Mesh(new THREE.BoxGeometry(sx,2.2,sz), hedgeMat);
+    m.position.set(x,1.1,z); m.castShadow=true; m.receiveShadow=true; scene.add(m);
+  };
+
   for (let r=0;r<3;r++) for (let c=0;c<3;c++){
-    const cx=bx(c), cz=bz(r), blk=r*3+c;
+    const cx=bx(c), cz=bz(r), blk=r*3+c, homeId=homeAt[c+','+r];
     // top & bottom edges: 5 houses each, along x, facing ±z
     for (const sz of [1,-1]){
       const hz = cz + sz*(HB - inset), rotY = sz>0 ? 0 : Math.PI;
       for (let i=0;i<5;i++){
         const x = cx + (i-2)*step;
-        placeHouse(x, hz, rotY);
+        placeHouse(x, hz, rotY, (sz>0 && i===2) ? homeId : null);
         placeCurb(x, cz + sz*curbAt, blk);
+        // backyard divider between this house and the next along the row
+        if (i<4) hedge(cx+(i-1.5)*step, hz - sz*22, 0.8, 26);
       }
+      // back-fence hedge running behind the whole row
+      hedge(cx, hz - sz*34, BLOCK*0.82, 0.8);
     }
-    // left & right edges: 4 houses each, along z, facing ±x (corners already taken)
+    // left & right edges: 4 houses each, along z, facing ±x
     for (const sx of [1,-1]){
       const hx = cx + sx*(HB - inset), rotY = sx>0 ? Math.PI/2 : -Math.PI/2;
       for (let j=0;j<4;j++){
         const z = cz + (j-1.5)*step;
-        placeHouse(hx, z, rotY);
+        placeHouse(hx, z, rotY, null);
         placeCurb(cx + sx*curbAt, z, blk);
+        if (j<3) hedge(hx - sx*22, cz+(j-1)*step, 26, 0.8);
       }
     }
   }
@@ -410,6 +435,7 @@ function spawnDogs(){
     const home = HOMES[id];
     const spawn = spawnSpot(home);
     mesh.position.set(spawn.x, 0, spawn.z);
+    scene.add(mesh);                       // <-- the dog body itself (was missing)
 
     const stream = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,1,6),
       new THREE.MeshBasicMaterial({ color:0xffe34d, transparent:true, opacity:0.85 }));
@@ -418,7 +444,7 @@ function spawnDogs(){
     // opponents keep a ground ring so you can spot them; the player uses an arrow instead
     let ring = null, headGrp = null;
     if (isYou){
-      mesh.scale.set(1.18,1.18,1.18);
+      mesh.scale.set(0.85,0.85,0.85);
       headGrp = new THREE.Group();
       const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.6,1.5,3),
         new THREE.MeshBasicMaterial({ color:0xa9e4ff }));
@@ -522,6 +548,15 @@ function aiThink(dog,dt){
     tryPoop(dog);
 }
 
+// true if point (x,z) is inside any house footprint (used for collision)
+function inHouse(x,z){
+  for (let i=0;i<houseBoxes.length;i++){
+    const b = houseBoxes[i];
+    if (x>b.x0 && x<b.x1 && z>b.z0 && z<b.z1) return true;
+  }
+  return false;
+}
+
 function stepDog(dog,dt,owners){
   const p = dog.mesh.position;
   let mx=0, mz=0, sprint=false;
@@ -563,9 +598,13 @@ function stepDog(dog,dt,owners){
   if (mag>0){
     mx/=mag; mz/=mag;
     const spd = TUNE.SPEED*(sprint?TUNE.SPRINT:1)*(dog.vulnerable?TUNE.VULN_SPEED:1);
-    p.x = clamp(p.x + mx*spd*dt, -BOUND, BOUND);
-    p.z = clamp(p.z + mz*spd*dt, -BOUND, BOUND);
-    moved = spd*dt;
+    const ox=p.x, oz=p.z;
+    let nx = clamp(ox + mx*spd*dt, -BOUND, BOUND);
+    let nz = clamp(oz + mz*spd*dt, -BOUND, BOUND);
+    if (inHouse(nx, oz)) nx = ox;     // blocked in x -> slide along z
+    if (inHouse(nx, nz)) nz = oz;     // blocked in z -> slide along x
+    p.x = nx; p.z = nz;
+    moved = Math.hypot(nx-ox, nz-oz);
   }
   dog.walk += moved;
 
@@ -670,9 +709,9 @@ function updateCamera(){
     // Turning in place leaves it fixed -> the dog spins on its axis, camera still.
     const ov = camFollowYaw + camYaw;
     const f = { x:Math.sin(ov), z:Math.cos(ov) };
-    const dist = 5.2, height = 3.9 - pitch*3.0;
+    const dist = 4.7, height = 3.2 - pitch*3.0;
     camera.position.set(p.x - f.x*dist, p.y + height, p.z - f.z*dist);
-    camera.lookAt(p.x, p.y + headY + pitch*2, p.z);
+    camera.lookAt(p.x, p.y + 1.05 + pitch*2, p.z);
   }
 }
 
