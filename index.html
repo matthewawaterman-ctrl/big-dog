@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-012">
+<meta name="build" content="bd-013">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -252,8 +252,13 @@ function buildWorld(){
   base.rotation.x = -Math.PI/2; base.position.y = -0.02; base.receiveShadow = true;
   scene.add(base);
 
+  const SW = 5;                          // sidewalk width around each block
+  const swGeo = new THREE.PlaneGeometry(BLOCK+2*SW, BLOCK+2*SW);
   const tileGeo = new THREE.PlaneGeometry(BLOCK, BLOCK);
   for (let r=0;r<3;r++) for (let c=0;c<3;c++){
+    // light sidewalk slab, grass on top -> sidewalk shows as a border ring
+    const sw = new THREE.Mesh(swGeo, new THREE.MeshLambertMaterial({ color:0xc3c7cc }));
+    sw.rotation.x = -Math.PI/2; sw.position.set(bx(c), -0.01, bz(r)); sw.receiveShadow = true; scene.add(sw);
     const m = new THREE.MeshLambertMaterial({ color:0x6cbf5a });
     const t = new THREE.Mesh(tileGeo, m);
     t.rotation.x = -Math.PI/2; t.position.set(bx(c), 0, bz(r));
@@ -261,15 +266,14 @@ function buildWorld(){
     tiles.push({ mesh:t, mat:m, base:new THREE.Color(0x6cbf5a) });
   }
 
-  const fenceMat = new THREE.MeshLambertMaterial({ color:0xece4d2 });
-  for (let i=-HALF; i<=HALF; i+=8){
-    [[i,-HALF],[i,HALF],[-HALF,i],[HALF,i]].forEach(([x,z])=>{
-      const p = new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,2.4,6), fenceMat);
-      p.position.set(x,1.2,z); scene.add(p);
-    });
-  }
+  // cheap perimeter wall (4 boxes instead of hundreds of posts)
+  const wallMat = new THREE.MeshLambertMaterial({ color:0xe4dcc8 });
+  const wl = HALF*2+2, wt = 1.4, wh = 2.6;
+  [[0,-HALF,wl,wt],[0,HALF,wl,wt],[-HALF,0,wt,wl],[HALF,0,wt,wl]].forEach(([x,z,sx,sz])=>{
+    const w = new THREE.Mesh(new THREE.BoxGeometry(sx,wh,sz), wallMat);
+    w.position.set(x,wh/2,z); w.castShadow = true; scene.add(w);
+  });
 
-  // one doghouse per dog, roof + ring tinted to that dog's color
   const fence2 = new THREE.MeshLambertMaterial({ color:0xece4d2 });
   for (const id of ['you','ai1','ai2']){
     const h = HOMES[id], col = oc(id).hex;
@@ -324,22 +328,55 @@ function makeObjectMesh(type, weight){
   return g;
 }
 
+// suburban house — 2 meshes (body + hip roof), varied colors
+const HOUSE_WALLS = [0xd9cbb2,0xb7c9d6,0xc9d6b7,0xd6b7b7,0xcfc3d6,0xd8cdb0,0xbfc7cc,0xe0c9a8];
+const HOUSE_ROOFS = [0x6b4a2b,0x556677,0x4f6b3f,0x7a3f3f,0x554f6b,0x5a4a2a,0x555b60,0x6b5230];
+function makeHouse(){
+  const g = new THREE.Group();
+  const k = (Math.random()*HOUSE_WALLS.length)|0;
+  const HW=20+Math.random()*5, HD=15+Math.random()*3, HH=7+Math.random()*1.6;
+  const body = new THREE.Mesh(new THREE.BoxGeometry(HW,HH,HD), new THREE.MeshLambertMaterial({color:HOUSE_WALLS[k]}));
+  body.position.y=HH/2; body.castShadow=true; body.receiveShadow=true; g.add(body);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(1,1,4), new THREE.MeshLambertMaterial({color:HOUSE_ROOFS[k]}));
+  roof.scale.set(HW*0.64, 5, HD*0.64); roof.position.y=HH+2.5; roof.rotation.y=Math.PI/4; roof.castShadow=true; g.add(roof);
+  return g;
+}
+
+// Build the subdivision: 18 houses ringing each block (5 + 5 + 4 + 4), facing the street,
+// with one markable "obstacle" at each house's curb.
 function buildObjects(){
   let id = 0;
+  const HB = BLOCK/2, step = BLOCK/5, inset = 19, curbAt = HB - 3;
+  const curbTypes = ['mailbox','mailbox','hydrant','lamp','can','tree'];
+  const placeHouse = (x,z,rotY)=>{ const h=makeHouse(); h.position.set(x,0,z); h.rotation.y=rotY; scene.add(h); };
+  const placeCurb = (ox,oz,blk)=>{
+    const type = curbTypes[(Math.random()*curbTypes.length)|0];
+    const weight = 1 + ((Math.random()*3)|0);
+    const mesh = makeObjectMesh(type, weight); mesh.position.set(ox,0,oz); scene.add(mesh);
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(2.2,24),
+      new THREE.MeshBasicMaterial({ color:0x8a949e, transparent:true, opacity:0, side:THREE.DoubleSide }));
+    disc.rotation.x = -Math.PI/2; disc.position.set(ox,0.05,oz); scene.add(disc);
+    objects.push({ id:id++, x:ox, z:oz, block:blk, weight, claim:0, owner:null, lock:0, contestedBy:{}, mesh, disc });
+  };
   for (let r=0;r<3;r++) for (let c=0;c<3;c++){
-    const cx=bx(c), cz=bz(r), center=(r===1&&c===1);
-    for (let k=0;k<TUNE.OBJ_PER_BLOCK;k++){
-      let x,z,tries=0;
-      do { x = cx+(Math.random()-0.5)*(BLOCK-6); z = cz+(Math.random()-0.5)*(BLOCK-6); tries++; }
-      while (center && Math.hypot(x,z) < TUNE.HOME_R+5 && tries<40);
-      const type = OBJ_TYPES[(Math.random()*OBJ_TYPES.length)|0];
-      const weight = 1 + ((Math.random()*3)|0);
-      const mesh = makeObjectMesh(type, weight);
-      mesh.position.set(x,0,z); scene.add(mesh);
-      const disc = new THREE.Mesh(new THREE.CircleGeometry(2.2,28),
-        new THREE.MeshBasicMaterial({ color:0x8a949e, transparent:true, opacity:0, side:THREE.DoubleSide }));
-      disc.rotation.x = -Math.PI/2; disc.position.set(x,0.05,z); scene.add(disc);
-      objects.push({ id:id++, x, z, block:r*3+c, weight, claim:0, owner:null, lock:0, contestedBy:{}, mesh, disc });
+    const cx=bx(c), cz=bz(r), blk=r*3+c;
+    // top & bottom edges: 5 houses each, along x, facing ±z
+    for (const sz of [1,-1]){
+      const hz = cz + sz*(HB - inset), rotY = sz>0 ? 0 : Math.PI;
+      for (let i=0;i<5;i++){
+        const x = cx + (i-2)*step;
+        placeHouse(x, hz, rotY);
+        placeCurb(x, cz + sz*curbAt, blk);
+      }
+    }
+    // left & right edges: 4 houses each, along z, facing ±x (corners already taken)
+    for (const sx of [1,-1]){
+      const hx = cx + sx*(HB - inset), rotY = sx>0 ? Math.PI/2 : -Math.PI/2;
+      for (let j=0;j<4;j++){
+        const z = cz + (j-1.5)*step;
+        placeHouse(hx, z, rotY);
+        placeCurb(cx + sx*curbAt, z, blk);
+      }
     }
   }
 }
