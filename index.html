@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-014">
+<meta name="build" content="bd-015">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -45,9 +45,17 @@
     background:rgba(255,255,255,.85);box-shadow:0 0 0 2px rgba(0,0,0,.35);display:none}
   #mini{position:absolute;top:12px;right:12px;width:150px;height:150px;border-radius:10px;
     background:rgba(7,5,15,.55);border:1px solid rgba(255,255,255,.18);box-shadow:0 4px 16px rgba(0,0,0,.4)}
-  #viewtag{position:absolute;right:14px;bottom:16px;font-size:12px;opacity:.7}
-  #ctrls{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:12px;opacity:.72;white-space:nowrap}
+  #viewtag{position:absolute;right:16px;bottom:18px;font-size:16px;opacity:.85}
+  #ctrls{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);font-size:19px;opacity:.95;white-space:nowrap;
+    text-shadow:0 1px 4px rgba(0,0,0,.8)}
   #ctrls b{color:#ffd34d}
+  #toast{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font-size:18px;color:#ffd34d;
+    background:rgba(7,5,15,.72);border:1px solid rgba(255,211,77,.4);border-radius:10px;padding:8px 18px;
+    opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+  .settings{margin-top:16px;font-size:14px;opacity:.95;display:flex;gap:26px;justify-content:center;flex-wrap:wrap;cursor:default}
+  .settings label{display:flex;flex-direction:column;gap:4px;align-items:center}
+  .settings input[type=range]{width:170px;accent-color:#ffd34d;cursor:pointer}
+  .settings .val{color:#ffd34d;font-weight:bold}
   #prompt{position:absolute;left:50%;top:55%;transform:translateX(-50%);font-size:15px;font-weight:700;
     color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.75);display:none;white-space:nowrap}
   #prompt b{color:#ffd34d}
@@ -107,6 +115,7 @@
   <canvas id="mini" width="300" height="300"></canvas>
   <div id="viewtag">3rd person · press C</div>
   <div id="ctrls"><b>Space</b>/click pee · <b>P</b>/right-click poop · <b>C</b> view</div>
+  <div id="toast"></div>
   <div id="prompt">Hold <b>Space</b> to mark · <b>P</b> to poop</div>
 </div>
 
@@ -115,6 +124,7 @@
   <h1>BIG&nbsp;DOG</h1>
   <p class="tag">Run the block. Mark your turf. Out-claim the strays before the buzzer.</p>
   <p>Hold to pee and claim objects. The longer you mark, the harder to steal.
+     <b>Own the most stuff on a block and the whole block turns your color — most blocks at the buzzer wins.</b>
      Run low and you must trot home to refuel — get caught empty in enemy turf and you're vulnerable.</p>
   <div class="keys">
     <b>↑ ↓</b> walk &nbsp;·&nbsp; <b>← →</b> turn (hold both to curve) &nbsp;·&nbsp; <b>Shift</b> sprint<br>
@@ -122,6 +132,12 @@
     <b>Space</b> (or left-click) pee &nbsp;·&nbsp; <b>P</b> (or right-click) power-poop (trump)
   </div>
   <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
+  <div class="settings" onclick="event.stopPropagation()">
+    <label>walk speed <span class="val" id="spdVal"></span>
+      <input type="range" id="spdRange" min="20" max="60" step="1"></label>
+    <label>turn speed <span class="val" id="turnVal"></span>
+      <input type="range" id="turnRange" min="1.2" max="4.5" step="0.1"></label>
+  </div>
   <div class="cta">Click to play</div>
   <div class="buildline">build <b id="buildLabel"></b></div>
 </div>
@@ -150,7 +166,8 @@
 const TUNE = {
   ROUND_TIME: 120,   // sec
   FILL: 25,          // claim/sec while peeing on own/neutral object
-  DECAY: 2,          // claim/sec bled from any owned object
+  DECAY: 2,          // claim/sec bled from any owned object — down to DECAY_FLOOR, never to zero
+  DECAY_FLOOR: 15,   // owned objects never decay below this: your turf stays yours (but cheap to steal)
   ERODE: 20,         // claim/sec stripped from an enemy object before you can claim it
   PEE_DRAIN: 13,     // bladder/sec while peeing
   WATER: 34,         // bladder/sec refilled at home
@@ -160,10 +177,10 @@ const TUNE = {
   HOME_R: 16,        // refuel zone radius
   BLADDER_MAX: 100,
   POOP_MAX: 1,
-  SPEED: 44,         // units/sec (bumped for the much bigger map)
+  SPEED: 34,         // units/sec — default walk (player-adjustable in settings)
   SPRINT: 1.7,
   VULN_SPEED: 0.55,
-  TURN: 3.2,         // rad/sec — heading turn rate (left/right arrows)
+  TURN: 2.3,         // rad/sec — heading turn rate (player-adjustable in settings)
   CAM_FOLLOW: 4,     // how fast the camera swings behind you when you start walking (lower = lazier)
   LOOK_YAW: 1.9,     // rad/sec — camera pan while holding Cmd
   LOOK_PITCH: 1.4,   // rad/sec — camera tilt while holding Cmd
@@ -376,6 +393,7 @@ function buildObjects(){
   const hedge = (x,z,sx,sz)=>{
     const m = new THREE.Mesh(new THREE.BoxGeometry(sx,2.2,sz), hedgeMat);
     m.position.set(x,1.1,z); m.castShadow=true; m.receiveShadow=true; scene.add(m);
+    houseBoxes.push({ x0:x-sx/2-0.5, x1:x+sx/2+0.5, z0:z-sz/2-0.5, z1:z+sz/2+0.5 });
   };
 
   for (let r=0;r<3;r++) for (let c=0;c<3;c++){
@@ -441,25 +459,18 @@ function spawnDogs(){
       new THREE.MeshBasicMaterial({ color:0xffe34d, transparent:true, opacity:0.85 }));
     stream.visible = false; scene.add(stream);
 
-    // opponents keep a ground ring so you can spot them; the player uses an arrow instead
-    let ring = null, headGrp = null;
+    // opponents keep a ground ring so you can spot them; you ARE the dog now (no arrow)
+    let ring = null;
     if (isYou){
       mesh.scale.set(0.85,0.85,0.85);
-      headGrp = new THREE.Group();
-      const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.6,1.5,3),
-        new THREE.MeshBasicMaterial({ color:0xa9e4ff }));
-      arrow.rotation.x = -Math.PI/2;          // lay flat, tip toward +Z
-      arrow.position.set(0,0.08,2.4);          // out in front of the dog
-      headGrp.add(arrow);
-      scene.add(headGrp);
     } else {
       ring = new THREE.Mesh(new THREE.RingGeometry(1.25,1.6,32),
         new THREE.MeshBasicMaterial({ color:oc(id).hex, transparent:true, opacity:0.6, side:THREE.DoubleSide }));
       ring.rotation.x = -Math.PI/2; ring.position.y = 0.06; scene.add(ring);
     }
 
-    return { id, mesh, stream, ring, headGrp, home, bladder:TUNE.BLADDER_MAX, poop:TUNE.POOP_MAX, foodT:0,
-             peeing:false, vulnerable:false, ai:{ state:'roam', target:null, think:0 }, walk:0 };
+    return { id, mesh, stream, ring, home, bladder:TUNE.BLADDER_MAX, poop:TUNE.POOP_MAX, foodT:0,
+             peeing:false, vulnerable:false, squatT:0, peeSide:1, ai:{ state:'roam', target:null, think:0 }, walk:0 };
   };
   dogs = [ mk('you'), mk('ai1'), mk('ai2') ];
   dogs[0].mesh.rotation.y = yaw;
@@ -473,16 +484,10 @@ function spawnSpot(home){
   return { x: home.x + ux*SPAWN_R, z: home.z + uz*SPAWN_R };
 }
 
-// keep opponent rings under them and the player's heading arrow pointed where you face
+// keep opponent rings under them
 function updateMarkers(){
   for (const d of dogs){
     if (d.ring) d.ring.position.set(d.mesh.position.x, 0.06, d.mesh.position.z);
-  }
-  const you = dogs[0];
-  if (you.headGrp){
-    you.headGrp.position.set(you.mesh.position.x, 0, you.mesh.position.z);
-    you.headGrp.rotation.y = yaw;
-    you.headGrp.visible = !firstPerson;   // only useful in 3rd person
   }
 }
 
@@ -507,12 +512,20 @@ function applyPee(dog, o, dt){
 }
 
 function tryPoop(dog){
-  if (dog.poop<=0) return;
+  const me = dog.id==='you';
+  if (dog.poop<=0){ if(me) toast('no poop left — eat at home to reload'); return; }
   const { o, d } = nearestObject(dog);
-  if (!o || d>TUNE.MARK_RANGE) return;
-  if (o.lock>0 && o.owner!==dog.id) return;
+  if (!o || d>TUNE.MARK_RANGE){ if(me) toast('too far — get next to an object to poop'); return; }
+  if (o.lock>0 && o.owner!==dog.id){ if(me) toast('locked — someone just pooped there'); return; }
   o.owner=dog.id; o.claim=100; o.lock=TUNE.POOP_LOCK; o.contestedBy={}; dog.poop--;
-  if (dog.id==='you') stats.poops++;
+  dog.squatT = 1.2;                      // squat animation
+  if (me) stats.poops++;
+}
+
+let toastT=null;
+function toast(msg){
+  const el = $('toast'); el.textContent = msg; el.style.opacity = 1;
+  clearTimeout(toastT); toastT = setTimeout(()=>{ el.style.opacity = 0; }, 1600);
 }
 
 function blockOwners(){
@@ -615,7 +628,10 @@ function stepDog(dog,dt,owners){
   }
   if (streamTo){
     dog.stream.visible=true;
-    const a = new THREE.Vector3(p.x + Math.sin(dog.mesh.rotation.y)*0.9, 0.9, p.z + Math.cos(dog.mesh.rotation.y)*0.9);
+    const ry = dog.mesh.rotation.y;
+    // which side is the target on? right vector = (cos ry, -sin ry)
+    dog.peeSide = ((streamTo.x-p.x)*Math.cos(ry) - (streamTo.z-p.z)*Math.sin(ry)) >= 0 ? 1 : -1;
+    const a = new THREE.Vector3(p.x + Math.sin(ry)*0.9, 0.9, p.z + Math.cos(ry)*0.9);
     const b = new THREE.Vector3(streamTo.x, 0.5, streamTo.z);
     orientCyl(dog.stream, a, b);
   } else dog.stream.visible=false;
@@ -635,17 +651,26 @@ function stepDog(dog,dt,owners){
   const running = moved>0 ? 1 : 0;
   dog.mesh.position.y = Math.abs(sw)*0.16*running;            // bob while trotting
   dog.legLift = (dog.legLift||0) + (((dog.peeing?1:0) - (dog.legLift||0)) * Math.min(1, dt*9));
+  // squat eases in fast, out slow (poop stance)
+  if (dog.squatT>0) dog.squatT = Math.max(0, dog.squatT - dt);
+  dog.squat = (dog.squat||0) + (((dog.squatT>0?1:0) - (dog.squat||0)) * Math.min(1, dt*8));
+  dog.mesh.rotation.x = -0.42*dog.squat;                       // rear sinks, nose up
+  dog.mesh.position.y += 0.12*dog.squat;
   const ud = dog.mesh.userData;
   if (ud.legs){
+    // legs: [0] back-L, [1] front-L, [2] back-R, [3] front-R — hike the back leg on the target's side
+    const liftIdx = dog.peeSide>=0 ? 2 : 0;
     ud.legs.forEach((L,i)=>{
       const swing = Math.sin(dog.walk*1.4 + (i%2?Math.PI:0)) * (running?0.85:0.04);
-      L.rotation.x = swing * (i===2 ? (1-dog.legLift) : 1);
-      L.rotation.z = (i===2) ? -dog.legLift*1.3 : 0;          // hike the back-right leg up to pee
+      const isLift = (i===liftIdx);
+      L.rotation.x = swing * (isLift ? (1-dog.legLift) : 1) + (i%2===0 ? dog.squat*0.9 : 0); // back legs fold in squat
+      L.rotation.z = isLift ? -dog.peeSide*dog.legLift*1.3 : 0;   // hike out toward the target
     });
-    // tail: always wagging, faster when moving or peeing (happy dog)
+    // tail: wags when happy, flags straight up in the squat
     const wagSpeed = 6 + running*6 + dog.legLift*6;
-    ud.tail.rotation.y = Math.sin(now*wagSpeed)*0.6;
+    ud.tail.rotation.y = Math.sin(now*wagSpeed)*0.6*(1-dog.squat);
     ud.tail.rotation.z = dog.legLift*0.3;
+    ud.tail.rotation.x = -dog.squat*0.9;
     // ears bounce a touch while trotting
     if (ud.ears){
       const flap = Math.sin(dog.walk*1.4)*0.25*running;
@@ -869,7 +894,7 @@ function animate(){
   if (running && !over){
     for (const o of objects){
       if (o.lock>0){ o.lock=Math.max(0,o.lock-dt); continue; }
-      if (o.owner){ o.claim-=TUNE.DECAY*dt; if(o.claim<=0){o.claim=0;o.owner=null;o.contestedBy={};} }
+      if (o.owner){ o.claim = Math.max(TUNE.DECAY_FLOOR, o.claim - TUNE.DECAY*dt); }
     }
     const owners = blockOwners();
     for (const d of dogs) stepDog(d,dt,owners);
@@ -886,10 +911,26 @@ function animate(){
   renderer.render(scene,camera);
 }
 
+function initSettings(){
+  const store = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+  const save  = (k,v) => { try { localStorage.setItem(k,v); } catch(e){} };
+  const s = parseFloat(store('bd_speed')), t = parseFloat(store('bd_turn'));
+  if (!isNaN(s)) TUNE.SPEED = s;
+  if (!isNaN(t)) TUNE.TURN = t;
+  const wire = (rangeId, valId, key, get, set, fmt) => {
+    const r = $(rangeId), v = $(valId);
+    r.value = get(); v.textContent = fmt(get());
+    r.addEventListener('input', ()=>{ set(parseFloat(r.value)); v.textContent = fmt(get()); save(key, r.value); });
+  };
+  wire('spdRange','spdVal','bd_speed', ()=>TUNE.SPEED, x=>TUNE.SPEED=x, x=>Math.round(x));
+  wire('turnRange','turnVal','bd_turn', ()=>TUNE.TURN, x=>TUNE.TURN=x, x=>x.toFixed(1));
+}
+
 function boot(){
   initThree();
   buildChips();
   bindInput();
+  initSettings();
   dogs[0].mesh.visible = true;
   $('buildLabel').textContent = BUILD;
   $('buildtag').textContent = BUILD;
