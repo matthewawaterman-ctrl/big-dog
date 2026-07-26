@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-018">
+<meta name="build" content="bd-019">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -52,6 +52,7 @@
   #bigdog{font-size:clamp(34px,7vw,58px);font-weight:bold;letter-spacing:2px;margin:2px 0 10px;
     animation:bigdogPop .5s cubic-bezier(.2,1.4,.4,1) both}
   @keyframes bigdogPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  #fps{position:absolute;left:16px;top:34px;font-size:13px;opacity:.6;color:#9fe6b0}
   #toast{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font-size:18px;color:#ffd34d;
     background:rgba(7,5,15,.72);border:1px solid rgba(255,211,77,.4);border-radius:10px;padding:8px 18px;
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
@@ -117,8 +118,9 @@
   <div id="cross"></div>
   <canvas id="mini" width="300" height="300"></canvas>
   <div id="viewtag">3rd person · press C</div>
-  <div id="ctrls"><b>Space</b>/click pee · <b>P</b> poop · <b>J</b> jump · <b>C</b> view</div>
+  <div id="ctrls"><b>Space</b> pee · <b>F</b> poop · <b>D</b> jump · <b>C</b> view &nbsp;|&nbsp; move: <b>&larr;&uarr;&darr;&rarr;</b> or <b>L P ; '</b></div>
   <div id="toast"></div>
+  <div id="fps"></div>
   <div id="prompt">Hold <b>Space</b> to mark · <b>P</b> to poop</div>
 </div>
 
@@ -132,7 +134,7 @@
   <div class="keys">
     <b>↑ ↓</b> walk &nbsp;·&nbsp; <b>← →</b> turn (hold both to curve) &nbsp;·&nbsp; <b>Shift</b> sprint<br>
     hold <b>⌘ Cmd</b> (or <b>Ctrl</b>) + arrows to look around &nbsp;·&nbsp; <b>C</b> 1st/3rd person<br>
-    <b>Space</b> (or left-click) pee &nbsp;·&nbsp; <b>P</b> (or right-click) power-poop (trump)<br><b>J</b> jump — hurdle the hedges between backyards
+    <b>Space</b> (or left-click) pee &nbsp;·&nbsp; <b>F</b> (or right-click) power-poop (trump)<br><b>D</b> jump — hurdle the hedges between backyards<br>move with the <b>arrow keys</b> or <b>L</b>&nbsp;left &nbsp;<b>'</b>&nbsp;right &nbsp;<b>P</b>&nbsp;up &nbsp;<b>;</b>&nbsp;down
   </div>
   <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
   <div class="settings" onclick="event.stopPropagation()">
@@ -252,6 +254,7 @@ function blockIndexAt(x,z){
 let scene, camera, renderer, clock;
 let dogs = [], objects = [], tiles = [], poops = [], cars = [];
 let prevOwners = new Array(9).fill(null);
+let fpsFrames = 0, fpsAccum = 0;
 let yaw = 0, pitch = 0.12, camYaw = 0, camFollowYaw = 0, playerFwd = 0, firstPerson = false;
 const PITCH_DEFAULT = 0.12;
 const BUILD = (document.querySelector('meta[name="build"]') || {}).content || 'dev';
@@ -271,19 +274,21 @@ function initThree(){
   scene.fog = new THREE.Fog(0x9fd6ff, 220, 820);
 
   camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.1, 1600);
-  renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
   renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));   // Retina at 2x quadruples pixel cost
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.type = THREE.PCFShadowMap;              // PCFSoft is markedly more expensive
   document.getElementById('game').appendChild(renderer.domElement);
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x4a5a44, 0.95));
   const sun = new THREE.DirectionalLight(0xfff2dc, 0.9);
   sun.position.set(120, 190, 90);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  const d = 210;
+  sun.shadow.mapSize.set(1024, 1024);
+  // Tight shadow box: only the area around the action needs real shadows. The static
+  // neighborhood no longer casts at all, so this pass is now nearly free.
+  const d = 120;
   sun.shadow.camera.left = -d; sun.shadow.camera.right = d;
   sun.shadow.camera.top = d; sun.shadow.camera.bottom = -d;
   sun.shadow.camera.near = 1; sun.shadow.camera.far = 700;
@@ -342,6 +347,12 @@ function buildWorld(){
   buildObjects();
   spawnDogs();
   spawnCars();
+
+  // Shadow budget: only the dogs and cars cast. Re-rendering the whole static
+  // neighborhood into the shadow map every frame was the main framerate cost.
+  scene.traverse(o=>{ if (o.isMesh || o.isInstancedMesh) o.castShadow = false; });
+  for (const d of dogs) d.mesh.traverse(o=>{ if (o.isMesh) o.castShadow = true; });
+  for (const c of cars) c.mesh.traverse(o=>{ if (o.isMesh) o.castShadow = true; });
 }
 
 const OBJ_TYPES = ['hydrant','mailbox','tree','lamp','can'];
@@ -374,15 +385,21 @@ function makeObjectMesh(type, weight){
 // suburban house — body + hip roof, varied colors; footprint stored for collision
 const HOUSE_WALLS = [0xd9cbb2,0xb7c9d6,0xc9d6b7,0xd6b7b7,0xcfc3d6,0xd8cdb0,0xbfc7cc,0xe0c9a8];
 const HOUSE_ROOFS = [0x6b4a2b,0x556677,0x4f6b3f,0x7a3f3f,0x554f6b,0x5a4a2a,0x555b60,0x6b5230];
+// The 162 background houses are static, so they get batched into InstancedMeshes
+// (see buildInstances) instead of ~490 individual draw calls. Only the 3 home
+// houses are real objects, because they need a team-colored roof and a flag.
+const houseSpecs = [];   // {k,x,z,rotY,HW,HD,HH}
+const hedgeSpecs = [];   // {x,z,sx,sz}
+
 function makeHouse(homeCol){
   const g = new THREE.Group();
   const k = (Math.random()*HOUSE_WALLS.length)|0;
   const HW=22+Math.random()*5, HD=16+Math.random()*3, HH=8+Math.random()*1.8;
   const body = new THREE.Mesh(new THREE.BoxGeometry(HW,HH,HD), new THREE.MeshLambertMaterial({color:HOUSE_WALLS[k]}));
-  body.position.y=HH/2; body.castShadow=true; body.receiveShadow=true; g.add(body);
+  body.position.y=HH/2; g.add(body);
   const roof = new THREE.Mesh(new THREE.ConeGeometry(1,1,4),
     new THREE.MeshLambertMaterial({color: homeCol!=null ? homeCol : HOUSE_ROOFS[k]}));
-  roof.scale.set(HW*0.64, 5.5, HD*0.64); roof.position.y=HH+2.75; roof.rotation.y=Math.PI/4; roof.castShadow=true; g.add(roof);
+  roof.scale.set(HW*0.64, 5.5, HD*0.64); roof.position.y=HH+2.75; roof.rotation.y=Math.PI/4; g.add(roof);
   const door = new THREE.Mesh(new THREE.BoxGeometry(3,4.2,0.4), new THREE.MeshLambertMaterial({color:0x3a2a1a}));
   door.position.set(0,2.1,HD/2+0.05); g.add(door);
   if (homeCol!=null){   // flag pole so you can spot your home house across the map
@@ -395,6 +412,44 @@ function makeHouse(homeCol){
   return g;
 }
 
+// Batch every static house and hedge into a handful of InstancedMeshes.
+function buildInstances(){
+  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), E = new THREE.Euler(),
+        V = new THREE.Vector3(), S = new THREE.Vector3();
+  const boxGeo = new THREE.BoxGeometry(1,1,1), coneGeo = new THREE.ConeGeometry(1,1,4);
+  const setM = (im,i,px,py,pz,ry,sx,sy,sz)=>{
+    E.set(0,ry,0); Q.setFromEuler(E); V.set(px,py,pz); S.set(sx,sy,sz);
+    M.compose(V,Q,S); im.setMatrixAt(i,M);
+  };
+  const add = im => { im.instanceMatrix.needsUpdate = true; im.castShadow=false; im.receiveShadow=false; scene.add(im); };
+
+  // one body+roof batch per palette entry, so each batch is a single solid color
+  for (let k=0;k<HOUSE_WALLS.length;k++){
+    const grp = houseSpecs.filter(s=>s.k===k);
+    if (!grp.length) continue;
+    const bodies = new THREE.InstancedMesh(boxGeo, new THREE.MeshLambertMaterial({color:HOUSE_WALLS[k]}), grp.length);
+    const roofs  = new THREE.InstancedMesh(coneGeo, new THREE.MeshLambertMaterial({color:HOUSE_ROOFS[k]}), grp.length);
+    grp.forEach((s,i)=>{
+      setM(bodies,i, s.x, s.HH/2,      s.z, s.rotY,               s.HW,      s.HH, s.HD);
+      setM(roofs, i, s.x, s.HH+2.75,   s.z, s.rotY+Math.PI/4,     s.HW*0.64, 5.5,  s.HD*0.64);
+    });
+    add(bodies); add(roofs);
+  }
+  if (houseSpecs.length){        // every door is the same color -> one batch
+    const doors = new THREE.InstancedMesh(boxGeo, new THREE.MeshLambertMaterial({color:0x3a2a1a}), houseSpecs.length);
+    houseSpecs.forEach((s,i)=>{
+      const d = s.HD/2 + 0.05;
+      setM(doors,i, s.x + Math.sin(s.rotY)*d, 2.1, s.z + Math.cos(s.rotY)*d, s.rotY, 3, 4.2, 0.4);
+    });
+    add(doors);
+  }
+  if (hedgeSpecs.length){        // all hedges in a single draw call
+    const hm = new THREE.InstancedMesh(boxGeo, new THREE.MeshLambertMaterial({color:0x4f8f46}), hedgeSpecs.length);
+    hedgeSpecs.forEach((s,i)=> setM(hm,i, s.x, HEDGE_H/2, s.z, 0, s.sx, HEDGE_H, s.sz));
+    add(hm);
+  }
+}
+
 // Build the subdivision: 18 houses ringing each block, facing the street, with a curb obstacle
 // at each. Records collision boxes and drops backyard hedges between neighbours.
 function buildObjects(){
@@ -404,12 +459,20 @@ function buildObjects(){
   const homeAt = { '1,1':'you', '0,0':'ai1', '2,2':'ai2' };
 
   const placeHouse = (x,z,rotY,homeId)=>{
-    const h = makeHouse(homeId!=null ? oc(homeId).hex : undefined);
-    h.position.set(x,0,z); h.rotation.y=rotY; scene.add(h);
+    let HW, HD;
+    if (homeId!=null){                       // the 3 home houses stay real objects (flag + team roof)
+      const h = makeHouse(oc(homeId).hex);
+      h.position.set(x,0,z); h.rotation.y=rotY; scene.add(h);
+      HW = h.userData.HW; HD = h.userData.HD;
+    } else {                                 // everything else is queued for instancing
+      const k = (Math.random()*HOUSE_WALLS.length)|0;
+      HW = 22+Math.random()*5; HD = 16+Math.random()*3;
+      houseSpecs.push({ k, x, z, rotY, HW, HD, HH: 8+Math.random()*1.8 });
+    }
     // axis-aligned collision box (footprint depends on facing) + a 1u margin for the dog
     const along = Math.abs(Math.sin(rotY))>0.5;   // facing ±x -> depth runs along x
-    const hx = (along ? h.userData.HD : h.userData.HW)/2 + 1.0;
-    const hz = (along ? h.userData.HW : h.userData.HD)/2 + 1.0;
+    const hx = (along ? HD : HW)/2 + 1.0;
+    const hz = (along ? HW : HD)/2 + 1.0;
     houseBoxes.push({ x0:x-hx, x1:x+hx, z0:z-hz, z1:z+hz, top:999 });
   };
   const placeCurb = (ox,oz,blk)=>{
@@ -422,10 +485,8 @@ function buildObjects(){
     objects.push({ id:id++, x:ox, z:oz, block:blk, weight, claim:0, owner:null, lock:0, contestedBy:{}, mesh, disc });
   };
   // hedge segment (low green box) centered at x,z with the given size
-  const hedgeMat = new THREE.MeshLambertMaterial({ color:0x4f8f46 });
   const hedge = (x,z,sx,sz)=>{
-    const m = new THREE.Mesh(new THREE.BoxGeometry(sx,HEDGE_H,sz), hedgeMat);
-    m.position.set(x,HEDGE_H/2,z); m.castShadow=true; m.receiveShadow=true; scene.add(m);
+    hedgeSpecs.push({ x, z, sx, sz });
     houseBoxes.push({ x0:x-sx/2-0.3, x1:x+sx/2+0.3, z0:z-sz/2-0.3, z1:z+sz/2+0.3, top:HEDGE_H });
   };
 
@@ -455,6 +516,7 @@ function buildObjects(){
       }
     }
   }
+  buildInstances();          // collapse the queued houses/hedges into a few draw calls
 }
 
 function makeDog(hex){
@@ -713,10 +775,11 @@ function stepDog(dog,dt,owners){
     sprint = true;                          // full-tilt excitement
     if (dog.daze<=0) dog.dazeCool = 3;      // brief immunity so you aren't locked forever
   } else if (dog.id==='you'){
-    const L = keys['arrowleft']||keys['a'];
-    const R = keys['arrowright']||keys['d'];
-    const U = keys['arrowup']||keys['w'];
-    const Dn= keys['arrowdown']||keys['s'];
+    // movement: arrow keys, or the right-hand cluster  P=up  ;=down  L=left  '=right
+    const L = keys['arrowleft']  || keys['l'];
+    const R = keys['arrowright'] || keys["'"];
+    const U = keys['arrowup']    || keys['p'];
+    const Dn= keys['arrowdown']  || keys[';'];
     if (keys['meta']){
       // ---- LOOK mode: hold Cmd/Ctrl, arrows adjust point of view (no driving) ----
       playerFwd = 0;
@@ -770,7 +833,7 @@ function stepDog(dog,dt,owners){
   dog.y = dog.y || 0; dog.vy = dog.vy || 0;
   const grounded = dog.y <= 0.0001;
   if (dog.id === 'you'){
-    if (keys['j'] && grounded && dog.daze<=0){ dog.vy = TUNE.JUMP_V; dog.y = 0.001; }
+    if (keys['d'] && grounded && dog.daze<=0){ dog.vy = TUNE.JUMP_V; dog.y = 0.001; }
   } else if (grounded && dog.blocked && Math.random() < 0.06){
     dog.vy = TUNE.JUMP_V; dog.y = 0.001;              // AI hops a hedge it's stuck on
   }
@@ -1045,7 +1108,7 @@ function bindInput(){
 
   addEventListener('keydown', e=>{
     const k=e.key.toLowerCase();
-    const arrow = ['arrowup','arrowdown','arrowleft','arrowright'].includes(k);
+    const arrow = ['arrowup','arrowdown','arrowleft','arrowright',"'",';'].includes(k);
     if (k===' ' || arrow) e.preventDefault();
     // stop Cmd+Arrow from triggering browser back/forward/scroll
     if ((e.metaKey||e.ctrlKey) && arrow) e.preventDefault();
@@ -1054,7 +1117,7 @@ function bindInput(){
     if (e.key==='Meta'||e.key==='Control') keys['meta']=true;
     if (!running) return;
     if (k==='c'){ firstPerson=!firstPerson; dogs[0].mesh.visible=!firstPerson; }
-    if (k==='p') tryPoop(dogs[0]);
+    if (k==='f') tryPoop(dogs[0]);
   });
   addEventListener('keyup', e=>{
     keys[e.key.toLowerCase()]=false;
@@ -1062,7 +1125,7 @@ function bindInput(){
     if (e.key==='Meta'||e.key==='Control'){
       keys['meta']=false;
       // macOS drops keyups for other keys while Cmd is held — clear drive keys so nothing sticks
-      ['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].forEach(kk=>keys[kk]=false);
+      ['arrowup','arrowdown','arrowleft','arrowright','l','p',';',"'",'d','f'].forEach(kk=>keys[kk]=false);
     }
   });
   addEventListener('blur', ()=>{ for (const kk in keys) keys[kk]=false; });
@@ -1096,6 +1159,10 @@ function animate(){
     timeLeft -= dt;
     if (timeLeft<=0){ timeLeft=0; endRound(); }
   }
+  // fps sampler (1s window) — cheap, and tells us if input lag is really framerate
+  fpsFrames++; fpsAccum += dt;
+  if (fpsAccum >= 1){ $('fps').textContent = Math.round(fpsFrames/fpsAccum)+' fps'; fpsFrames=0; fpsAccum=0; }
+
   const owners = updateVisuals();
   updateMarkers();
   updateCamera();
