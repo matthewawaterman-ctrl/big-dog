@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-019">
+<meta name="build" content="bd-020">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -139,11 +139,11 @@
   <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
   <div class="settings" onclick="event.stopPropagation()">
     <label>walk speed <span class="val" id="spdVal"></span>
-      <input type="range" id="spdRange" min="6" max="34" step="1"></label>
+      <input type="range" id="spdRange" min="6" max="28" step="1"></label>
     <label>turn speed <span class="val" id="turnVal"></span>
-      <input type="range" id="turnRange" min="1.5" max="7" step="0.1"></label>
+      <input type="range" id="turnRange" min="0.4" max="2.6" step="0.05"></label>
     <label>camera follow <span class="val" id="camVal"></span>
-      <input type="range" id="camRange" min="3" max="30" step="1"></label>
+      <input type="range" id="camRange" min="3" max="27" step="1"></label>
   </div>
   <div class="cta">Click to play</div>
   <div class="buildline">build <b id="buildLabel"></b></div>
@@ -154,11 +154,11 @@
   <p class="tag">Click to get back out there.</p>
   <div class="settings" onclick="event.stopPropagation()">
     <label>walk speed <span class="val" id="spdVal2"></span>
-      <input type="range" id="spdRange2" min="6" max="34" step="1"></label>
+      <input type="range" id="spdRange2" min="6" max="28" step="1"></label>
     <label>turn speed <span class="val" id="turnVal2"></span>
-      <input type="range" id="turnRange2" min="1.5" max="7" step="0.1"></label>
+      <input type="range" id="turnRange2" min="0.4" max="2.6" step="0.05"></label>
     <label>camera follow <span class="val" id="camVal2"></span>
-      <input type="range" id="camRange2" min="3" max="30" step="1"></label>
+      <input type="range" id="camRange2" min="3" max="27" step="1"></label>
   </div>
   <div class="cta">Resume</div>
 </div>
@@ -190,13 +190,13 @@ const TUNE = {
   FOOD_TIME: 9,      // sec at home to regain 1 poop charge
   POOP_LOCK: 8,      // sec an object is locked from recapture after a poop
   MARK_RANGE: 5,     // world units you must be within to affect an object
-  HOME_R: 16,        // refuel zone radius
+  HOME_R: 9,         // refuel zone radius — now a small pad in the back yard, not the whole house
   BLADDER_MAX: 100,
   POOP_MAX: 1,
-  SPEED: 16,         // units/sec — default walk (player-adjustable in settings)
+  SPEED: 17,         // units/sec — your tuned default; sliders are centered on these
   SPRINT: 1.7,
   VULN_SPEED: 0.55,
-  TURN: 4.5,         // rad/sec — heading turn rate (player-adjustable in settings)
+  TURN: 1.5,         // rad/sec — heading turn rate (player-adjustable in settings)
   TURN_WALK: 1.9,    // turn-rate multiplier while walking — carve tight corners on the move
   CAR_COUNT: 4,      // cars cruising the streets at once
   CAR_SPEED: 46,     // units/sec
@@ -204,7 +204,8 @@ const TUNE = {
   DAZE_TIME: 4,      // sec of no control while chasing a car
   JUMP_V: 12.4,      // upward launch speed — apex must clear HEDGE_H
   GRAVITY: 38,       // units/sec^2 (heavy = snappy arc, not floaty)
-  CAM_FOLLOW: 18,    // camera catch-up rate (player-adjustable). low = lazy/cinematic, high = locked behind
+  CAM_FOLLOW: 15,    // camera catch-up rate (player-adjustable). low = lazy/cinematic, high = locked behind
+  CAM_MAX_LAG: 0.07, // rad (~4 deg) — camera may NEVER trail your heading by more than this
   LOOK_YAW: 1.9,     // rad/sec — camera pan while holding Cmd
   LOOK_PITCH: 1.4,   // rad/sec — camera tilt while holding Cmd
   OBJ_PER_BLOCK: 7,  // objects per block — unchanged
@@ -227,10 +228,18 @@ const HEDGE_H = 1.5;                // hedge height — low enough to hurdle, hi
 // each dog's home is a real subdivision house — the top-edge middle house of a block.
 // you: centre block · red: back-left block · orange: front-right block
 const HOME_BLOCK = { you:[1,1], ai1:[0,0], ai2:[2,2] };
-const HOMES = {
+const YARD_BACK = 16;   // how far behind the house the refuel pad sits (toward block centre)
+// the house itself (for the flag / minimap marker)
+const HOME_HOUSE = {
   you: { x: (HOME_BLOCK.you[0]-1)*B, z: (HOME_BLOCK.you[1]-1)*B + HOUSE_FRONT },
   ai1: { x: (HOME_BLOCK.ai1[0]-1)*B, z: (HOME_BLOCK.ai1[1]-1)*B + HOUSE_FRONT },
   ai2: { x: (HOME_BLOCK.ai2[0]-1)*B, z: (HOME_BLOCK.ai2[1]-1)*B + HOUSE_FRONT },
+};
+// the actual refuel station: doghouse + food/water bowls in that house's BACK yard
+const HOMES = {
+  you: { x: HOME_HOUSE.you.x, z: HOME_HOUSE.you.z - YARD_BACK },
+  ai1: { x: HOME_HOUSE.ai1.x, z: HOME_HOUSE.ai1.z - YARD_BACK },
+  ai2: { x: HOME_HOUSE.ai2.x, z: HOME_HOUSE.ai2.z - YARD_BACK },
 };
 const houseBoxes = [];        // AABBs for collision, filled while building the subdivision
 
@@ -255,6 +264,7 @@ let scene, camera, renderer, clock;
 let dogs = [], objects = [], tiles = [], poops = [], cars = [];
 let prevOwners = new Array(9).fill(null);
 let fpsFrames = 0, fpsAccum = 0;
+let jumpQueued = false;
 let yaw = 0, pitch = 0.12, camYaw = 0, camFollowYaw = 0, playerFwd = 0, firstPerson = false;
 const PITCH_DEFAULT = 0.12;
 const BUILD = (document.querySelector('meta[name="build"]') || {}).content || 'dev';
@@ -336,17 +346,40 @@ function buildWorld(){
     w.position.set(x,wh/2,z); w.castShadow = true; scene.add(w);
   });
 
-  // refuel ring at each dog's home house (the house itself is built in buildObjects)
+  // Refuel station in each home's back yard: a doghouse with a food + water bowl.
+  // Small pad, so you have to actually get to the bowls rather than just near the house.
   for (const id of ['you','ai1','ai2']){
     const h = HOMES[id], col = oc(id).hex;
-    const ring = new THREE.Mesh(new THREE.RingGeometry(TUNE.HOME_R-0.9, TUNE.HOME_R, 48),
-      new THREE.MeshBasicMaterial({ color:col, transparent:true, opacity:0.6, side:THREE.DoubleSide }));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(TUNE.HOME_R-0.7, TUNE.HOME_R, 40),
+      new THREE.MeshBasicMaterial({ color:col, transparent:true, opacity:0.75, side:THREE.DoubleSide }));
     ring.rotation.x = -Math.PI/2; ring.position.set(h.x,0.05,h.z); scene.add(ring);
+
+    // doghouse (faces the yard)
+    const kennel = new THREE.Group();
+    const kb = new THREE.Mesh(new THREE.BoxGeometry(3.4,2.6,3.6), new THREE.MeshLambertMaterial({color:0x8a5a33}));
+    kb.position.y=1.3; kennel.add(kb);
+    const kr = new THREE.Mesh(new THREE.ConeGeometry(2.9,1.7,4), new THREE.MeshLambertMaterial({color:col}));
+    kr.position.y=3.4; kr.rotation.y=Math.PI/4; kennel.add(kr);
+    const kd = new THREE.Mesh(new THREE.BoxGeometry(1.3,1.7,0.2), new THREE.MeshLambertMaterial({color:0x160e07}));
+    kd.position.set(0,0.85,1.82); kennel.add(kd);
+    kennel.position.set(h.x, 0, h.z - 3.6); scene.add(kennel);
+
+    // bowls: blue = water (bladder), brown = food (poop charge)
+    const bowl = (bx2,bz2,c)=>{
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.75,0.55,0.5,12), new THREE.MeshLambertMaterial({color:c}));
+      b.position.set(bx2,0.25,bz2); scene.add(b);
+      const fill = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,0.08,12),
+        new THREE.MeshLambertMaterial({color: c===0x3f7fd0 ? 0x7fc4ff : 0x6b4426}));
+      fill.position.set(bx2,0.5,bz2); scene.add(fill);
+    };
+    bowl(h.x-1.5, h.z+1.6, 0x3f7fd0);   // water
+    bowl(h.x+1.5, h.z+1.6, 0x9a6a3a);   // food
   }
 
   buildObjects();
   spawnDogs();
   spawnCars();
+  buildGPS();
 
   // Shadow budget: only the dogs and cars cast. Re-rendering the whole static
   // neighborhood into the shadow map every frame was the main framerate cost.
@@ -390,6 +423,46 @@ const HOUSE_ROOFS = [0x6b4a2b,0x556677,0x4f6b3f,0x7a3f3f,0x554f6b,0x5a4a2a,0x555
 // houses are real objects, because they need a team-colored roof and a flag.
 const houseSpecs = [];   // {k,x,z,rotY,HW,HD,HH}
 const hedgeSpecs = [];   // {x,z,sx,sz}
+const propParts  = [];   // {geo,color,px,py,pz,ry,sx,sy,sz} — batched like the houses
+
+// Back-yard clutter. Each entry is a list of parts in local space (z = "behind the house").
+// `tall` props can't be jumped; the low ones can be hurdled like hedges.
+const YARD_PROPS = {
+  shed:    { tall:true,  r:[3.2,2.6], parts:[
+    ['box',0x9aa0a6, 0,1.6,0, 0, 5.4,3.2,4.2],
+    ['cone',0x5a6066, 0,4.1,0, Math.PI/4, 4.6,1.5,3.8] ]},
+  grill:   { tall:false, r:[1.3,0.9], parts:[
+    ['box',0x2f3438, 0,1.05,0, 0, 2.0,0.85,1.15],
+    ['box',0x4a5055, 0,0.45,0, 0, 0.3,0.9,0.3],
+    ['cyl',0x2f3438, 0.6,1.75,0, 0, 0.3,0.7,0.3] ]},
+  firepit: { tall:false, r:[1.5,1.5], parts:[
+    ['cyl',0x74716b, 0,0.35,0, 0, 3.0,0.7,3.0],
+    ['cyl',0x2a2320, 0,0.72,0, 0, 2.4,0.1,2.4] ]},
+  chairs:  { tall:false, r:[1.9,0.9], parts:[
+    ['box',0xd8d2c4, -1.2,0.5,0, 0, 0.9,1.0,0.9],
+    ['box',0xd8d2c4,  1.2,0.5,0, 0, 0.9,1.0,0.9],
+    ['cyl',0x8a6b3f,  0,0.38,1.5, 0, 1.5,0.75,1.5] ]},
+  swing:   { tall:false, r:[2.4,0.9], parts:[
+    ['box',0x8a6b3f, -2.0,1.4,0, 0, 0.26,2.8,0.26],
+    ['box',0x8a6b3f,  2.0,1.4,0, 0, 0.26,2.8,0.26],
+    ['box',0x8a6b3f,  0,2.75,0, 0, 4.3,0.26,0.26],
+    ['box',0x3f5f8f, -0.9,1.05,0, 0, 0.8,0.12,0.4],
+    ['box',0x3f5f8f,  0.9,1.05,0, 0, 0.8,0.12,0.4] ]},
+};
+const PROP_KEYS = Object.keys(YARD_PROPS);
+
+// place a prop at (x,z) rotated by rotY, recording parts for instancing + a collision box
+function placeProp(x, z, rotY){
+  const key = PROP_KEYS[(Math.random()*PROP_KEYS.length)|0];
+  const P = YARD_PROPS[key], c = Math.cos(rotY), sn = Math.sin(rotY);
+  for (const [geo,color,lx,ly,lz,lry,sx,sy,sz] of P.parts){
+    propParts.push({ geo, color, px: x + lx*c + lz*sn, py: ly, pz: z - lx*sn + lz*c,
+                     ry: rotY + lry, sx, sy, sz });
+  }
+  const along = Math.abs(sn) > 0.5;
+  const hx = (along ? P.r[1] : P.r[0]) + 0.4, hz = (along ? P.r[0] : P.r[1]) + 0.4;
+  houseBoxes.push({ x0:x-hx, x1:x+hx, z0:z-hz, z1:z+hz, top: P.tall ? 999 : 1.3 });
+}
 
 function makeHouse(homeCol){
   const g = new THREE.Group();
@@ -448,6 +521,20 @@ function buildInstances(){
     hedgeSpecs.forEach((s,i)=> setM(hm,i, s.x, HEDGE_H/2, s.z, 0, s.sx, HEDGE_H, s.sz));
     add(hm);
   }
+  // back-yard props: batch by (geometry, color) so ~700 parts become ~12 draw calls
+  const cylGeo = new THREE.CylinderGeometry(0.5,0.5,1,10);
+  const geoFor = { box:boxGeo, cone:coneGeo, cyl:cylGeo };
+  const buckets = {};
+  for (const p of propParts){
+    const key = p.geo + '_' + p.color;
+    (buckets[key] = buckets[key] || { geo:p.geo, color:p.color, list:[] }).list.push(p);
+  }
+  for (const key in buckets){
+    const b = buckets[key];
+    const im = new THREE.InstancedMesh(geoFor[b.geo], new THREE.MeshLambertMaterial({color:b.color}), b.list.length);
+    b.list.forEach((p,i)=> setM(im,i, p.px,p.py,p.pz, p.ry, p.sx,p.sy,p.sz));
+    add(im);
+  }
 }
 
 // Build the subdivision: 18 houses ringing each block, facing the street, with a curb obstacle
@@ -482,7 +569,7 @@ function buildObjects(){
     const disc = new THREE.Mesh(new THREE.CircleGeometry(2.2,24),
       new THREE.MeshBasicMaterial({ color:0x8a949e, transparent:true, opacity:0, side:THREE.DoubleSide }));
     disc.rotation.x = -Math.PI/2; disc.position.set(ox,0.05,oz); scene.add(disc);
-    objects.push({ id:id++, x:ox, z:oz, block:blk, weight, claim:0, owner:null, lock:0, contestedBy:{}, mesh, disc });
+    objects.push({ id:id++, x:ox, z:oz, block:blk, weight, claim:0, owner:null, lock:0, sealed:null, contestedBy:{}, mesh, disc });
   };
   // hedge segment (low green box) centered at x,z with the given size
   const hedge = (x,z,sx,sz)=>{
@@ -497,8 +584,11 @@ function buildObjects(){
       const hz = cz + sz*(HB - inset), rotY = sz>0 ? 0 : Math.PI;
       for (let i=0;i<5;i++){
         const x = cx + (i-2)*step;
-        placeHouse(x, hz, rotY, (sz>0 && i===2) ? homeId : null);
+        const isHome = (sz>0 && i===2) ? homeId : null;
+        placeHouse(x, hz, rotY, isHome);
         placeCurb(x, cz + sz*curbAt, blk);
+        // back-yard prop (the 3 home yards hold the doghouse + bowls instead)
+        if (!isHome) placeProp(x + (Math.random()-0.5)*5, hz - sz*(19+Math.random()*4), rotY);
         // backyard divider between this house and the next along the row
         if (i<4) hedge(cx+(i-1.5)*step, hz - sz*22, 0.8, 26);
       }
@@ -512,6 +602,7 @@ function buildObjects(){
         const z = cz + (j-1.5)*step;
         placeHouse(hx, z, rotY, null);
         placeCurb(cx + sx*curbAt, z, blk);
+        placeProp(hx - sx*(19+Math.random()*4), z + (Math.random()-0.5)*5, rotY);
         if (j<3) hedge(hx - sx*22, cz+(j-1)*step, 26, 0.8);
       }
     }
@@ -578,7 +669,40 @@ function spawnSpot(home){
   const len = Math.hypot(home.x, home.z) || 1;
   const ux = home.x===0 && home.z===0 ? 1 : -home.x/len;
   const uz = home.x===0 && home.z===0 ? 0 : -home.z/len;
+  // walk outward from the station until we find open ground (never spawn in a wall)
+  for (let r=6; r<=SPAWN_R+18; r+=3){
+    for (let a=0; a<8; a++){
+      const th = Math.atan2(uz,ux) + (a%2?1:-1)*Math.floor(a/2)*0.45;
+      const x = home.x + Math.cos(th)*r, z = home.z + Math.sin(th)*r;
+      if (!inHouse(x,z,0) && Math.abs(x)<BOUND && Math.abs(z)<BOUND) return { x, z };
+    }
+  }
   return { x: home.x + ux*SPAWN_R, z: home.z + uz*SPAWN_R };
+}
+
+// ---- GPS: a floating chevron that points you back to your bowls when you run dry ----
+let gpsArrow = null;
+function buildGPS(){
+  const g = new THREE.Group();
+  const mat = new THREE.MeshBasicMaterial({ color:oc('you').hex });
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.42,0.9,4), mat);
+  head.rotation.x = Math.PI/2; head.position.z = 0.55; g.add(head);
+  const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.2,0.75), mat);
+  shaft.position.z = -0.1; g.add(shaft);
+  g.visible = false; scene.add(g); gpsArrow = g;
+}
+function updateGPS(){
+  if (!gpsArrow) return;
+  const you = dogs[0], p = you.mesh.position, h = you.home;
+  const dx = h.x-p.x, dz = h.z-p.z, dist = Math.hypot(dx,dz);
+  // show it when you're running dry (or fully empty) and not already home
+  const dry = you.bladder < 30 || (you.bladder<=0 && you.poop<=0);
+  gpsArrow.visible = dry && dist > TUNE.HOME_R;
+  if (!gpsArrow.visible) return;
+  gpsArrow.position.set(p.x, p.y + 1.5 + Math.sin(performance.now()*0.005)*0.1, p.z);
+  gpsArrow.rotation.y = Math.atan2(dx, dz);
+  const urgent = you.bladder <= 0;
+  gpsArrow.children.forEach(c=> c.material.color.setHex(urgent ? 0xff4d4d : oc('you').hex));
 }
 
 // keep opponent rings under them
@@ -595,6 +719,7 @@ function nearestObject(d){
 }
 
 function applyPee(dog, o, dt){
+  if (o.sealed && o.sealed !== dog.id) return;    // pooped turf is locked to its owner for good
   if (o.lock>0 && o.owner!==dog.id) return;
   if (dog.bladder<=0) return;
   dog.bladder = clamp(dog.bladder - TUNE.PEE_DRAIN*dt, 0, TUNE.BLADDER_MAX);
@@ -613,8 +738,9 @@ function tryPoop(dog){
   if (dog.poop<=0){ if(me) toast('no poop left — eat at home to reload'); return; }
   const { o, d } = nearestObject(dog);
   if (!o || d>TUNE.MARK_RANGE){ if(me) toast('too far — get next to an object to poop'); return; }
+  if (o.sealed && o.sealed !== dog.id){ if(me) toast('sealed — a rival pooped there, it is theirs'); return; }
   if (o.lock>0 && o.owner!==dog.id){ if(me) toast('locked — someone just pooped there'); return; }
-  o.owner=dog.id; o.claim=100; o.lock=TUNE.POOP_LOCK; o.contestedBy={}; dog.poop--;
+  o.owner=dog.id; o.claim=100; o.lock=TUNE.POOP_LOCK; o.contestedBy={}; o.sealed=dog.id; dog.poop--;
   dog.squatT = 1.2;                      // squat animation
   dropPoop(dog);                         // ...and leave a little something behind
   if (me) stats.poops++;
@@ -735,6 +861,7 @@ function aiThink(dog,dt){
   for (const o of objects){
     if (o.lock>0 && o.owner!==dog.id) continue;
     if (o.owner===dog.id && o.claim>85) continue;
+    if (o.sealed && o.sealed !== dog.id) continue;      // can't be taken, don't bother
     const own = o.owner===dog.id?0.2 : o.owner===null?1.5 : 2.0;
     const dx=o.x-dog.mesh.position.x, dz=o.z-dog.mesh.position.z;
     const s = o.weight*own*42 - Math.hypot(dx,dz);
@@ -833,7 +960,8 @@ function stepDog(dog,dt,owners){
   dog.y = dog.y || 0; dog.vy = dog.vy || 0;
   const grounded = dog.y <= 0.0001;
   if (dog.id === 'you'){
-    if (keys['d'] && grounded && dog.daze<=0){ dog.vy = TUNE.JUMP_V; dog.y = 0.001; }
+    if (jumpQueued && grounded && dog.daze<=0){ dog.vy = TUNE.JUMP_V; dog.y = 0.001; }
+    jumpQueued = false;          // one hop per press — holding D does nothing
   } else if (grounded && dog.blocked && Math.random() < 0.06){
     dog.vy = TUNE.JUMP_V; dog.y = 0.001;              // AI hops a hedge it's stuck on
   }
@@ -1066,7 +1194,7 @@ function endRound(){
   if (document.pointerLockElement) document.exitPointerLock();
 }
 function restart(){
-  for (const o of objects){ o.claim=0; o.owner=null; o.lock=0; o.contestedBy={}; }
+  for (const o of objects){ o.claim=0; o.owner=null; o.lock=0; o.contestedBy={}; o.sealed=null; }
   for (const pile of poops) scene.remove(pile);
   poops = [];
   spawnCars();
@@ -1118,6 +1246,7 @@ function bindInput(){
     if (!running) return;
     if (k==='c'){ firstPerson=!firstPerson; dogs[0].mesh.visible=!firstPerson; }
     if (k==='f') tryPoop(dogs[0]);
+    if (k==='d' && !e.repeat) jumpQueued = true;
   });
   addEventListener('keyup', e=>{
     keys[e.key.toLowerCase()]=false;
@@ -1142,6 +1271,7 @@ function animate(){
   if (running && !over){
     for (const o of objects){
       if (o.lock>0){ o.lock=Math.max(0,o.lock-dt); continue; }
+      if (o.sealed) { o.claim = 100; continue; }        // sealed turf holds at full
       if (o.owner){ o.claim = Math.max(TUNE.DECAY_FLOOR, o.claim - TUNE.DECAY*dt); }
     }
     const owners = blockOwners();
@@ -1154,8 +1284,12 @@ function animate(){
         pile.scale.set(s,s,s);
       }
     }
-    // camera tracks your heading at all times (rate is player-tunable)
+    // Camera tracks your heading, smoothed — but with a HARD cap on how far it may
+    // trail. Plain smoothing settles at a constant offset (turn_rate / follow_rate)
+    // for as long as you hold the key, which is what read as "turn lag".
     camFollowYaw = lerpAngle(camFollowYaw, yaw, Math.min(1, dt*TUNE.CAM_FOLLOW));
+    const lag = Math.atan2(Math.sin(yaw-camFollowYaw), Math.cos(yaw-camFollowYaw));
+    if (Math.abs(lag) > TUNE.CAM_MAX_LAG) camFollowYaw = yaw - Math.sign(lag)*TUNE.CAM_MAX_LAG;
     timeLeft -= dt;
     if (timeLeft<=0){ timeLeft=0; endRound(); }
   }
@@ -1165,6 +1299,7 @@ function animate(){
 
   const owners = updateVisuals();
   updateMarkers();
+  updateGPS();
   updateCamera();
   updateHUD(owners);
   updateMinimap(owners);
