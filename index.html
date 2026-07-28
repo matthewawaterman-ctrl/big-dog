@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-023">
+<meta name="build" content="bd-024">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -129,13 +129,13 @@
   <div id="cross"></div>
   <canvas id="mini" width="300" height="300"></canvas>
   <div id="viewtag">3rd person · press C</div>
-  <div id="ctrls"><b>Space</b> pee · <b>F</b> poop · <b>D</b> jump · <b>C</b> view · <b>M</b> mute · <b>,</b>/<b>.</b> track &nbsp;|&nbsp; move: <b>&larr;&uarr;&darr;&rarr;</b> or <b>L P ; '</b></div>
+  <div id="ctrls"><b>Space</b> pee · <b>D</b> poop · <b>F</b> jump · <b>C</b> view · <b>M</b> mute · <b>,</b>/<b>.</b> track &nbsp;|&nbsp; move: <b>&larr;&uarr;&darr;&rarr;</b> or <b>L P ; '</b></div>
   <div id="toast"></div>
   <div id="nowplaying"></div>
   <audio id="bgm"></audio>
   <div id="gps"><span id="gpsneedle">&#9650;</span><span id="gpsdist"></span></div>
   <div id="fps"></div>
-  <div id="prompt">Hold <b>Space</b> to mark · <b>P</b> to poop</div>
+  <div id="prompt">Hold <b>Space</b> to mark · <b>D</b> to poop</div>
 </div>
 
 <!-- ===== overlays ===== -->
@@ -148,7 +148,7 @@
   <div class="keys">
     <b>↑ ↓</b> walk &nbsp;·&nbsp; <b>← →</b> turn (hold both to curve) &nbsp;·&nbsp; <b>Shift</b> sprint<br>
     hold <b>⌘ Cmd</b> (or <b>Ctrl</b>) + arrows to look around &nbsp;·&nbsp; <b>C</b> 1st/3rd person<br>
-    <b>Space</b> (or left-click) pee &nbsp;·&nbsp; <b>F</b> (or right-click) power-poop (trump)<br><b>D</b> jump — hurdle the hedges between backyards<br>move with the <b>arrow keys</b> or <b>L</b>&nbsp;left &nbsp;<b>'</b>&nbsp;right &nbsp;<b>P</b>&nbsp;up &nbsp;<b>;</b>&nbsp;down
+    <b>Space</b> (or left-click) pee &nbsp;·&nbsp; <b>D</b> (or right-click) power-poop (trump)<br><b>F</b> jump — hurdle the hedges between backyards<br>move with the <b>arrow keys</b> or <b>L</b>&nbsp;left &nbsp;<b>'</b>&nbsp;right &nbsp;<b>P</b>&nbsp;up &nbsp;<b>;</b>&nbsp;down
   </div>
   <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
   <div class="settings" onclick="event.stopPropagation()">
@@ -1391,8 +1391,8 @@ function bindInput(){
     if (e.key==='Meta'||e.key==='Control') keys['meta']=true;
     if (!running) return;
     if (k==='c'){ firstPerson=!firstPerson; dogs[0].mesh.visible=!firstPerson; }
-    if (k==='f') tryPoop(dogs[0]);
-    if (k==='d' && !e.repeat) jumpQueued = true;
+    if (k==='d') tryPoop(dogs[0]);
+    if (k==='f' && !e.repeat) jumpQueued = true;
     if (k==='m' && !e.repeat) toggleMute();
     if (k==='n' && !e.repeat) nextTrack();
     if (k===',' && !e.repeat) prevTrack();
