@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-022">
+<meta name="build" content="bd-023">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -59,7 +59,10 @@
     max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .settings .music{flex-basis:100%;display:flex;gap:24px;justify-content:center;align-items:flex-end;
     flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.14);padding-top:12px;margin-top:4px}
-  .settings input[type=file]{font:inherit;font-size:12px;color:#cfd3da;width:210px;cursor:pointer}
+  .trackbtns{display:flex;gap:8px;margin-top:2px}
+  .trackbtns button{font:inherit;font-size:12px;color:#0f0a1e;background:#ffd34d;border:0;
+    border-radius:7px;padding:5px 12px;cursor:pointer;font-weight:bold}
+  .trackbtns button:hover{background:#fff0a8}
   #fps{position:absolute;left:16px;top:34px;font-size:13px;opacity:.6;color:#9fe6b0}
   #toast{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font-size:18px;color:#ffd34d;
     background:rgba(7,5,15,.72);border:1px solid rgba(255,211,77,.4);border-radius:10px;padding:8px 18px;
@@ -126,7 +129,7 @@
   <div id="cross"></div>
   <canvas id="mini" width="300" height="300"></canvas>
   <div id="viewtag">3rd person · press C</div>
-  <div id="ctrls"><b>Space</b> pee · <b>F</b> poop · <b>D</b> jump · <b>C</b> view · <b>M</b> mute · <b>N</b> next &nbsp;|&nbsp; move: <b>&larr;&uarr;&darr;&rarr;</b> or <b>L P ; '</b></div>
+  <div id="ctrls"><b>Space</b> pee · <b>F</b> poop · <b>D</b> jump · <b>C</b> view · <b>M</b> mute · <b>,</b>/<b>.</b> track &nbsp;|&nbsp; move: <b>&larr;&uarr;&darr;&rarr;</b> or <b>L P ; '</b></div>
   <div id="toast"></div>
   <div id="nowplaying"></div>
   <audio id="bgm"></audio>
@@ -149,6 +152,8 @@
   </div>
   <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
   <div class="settings" onclick="event.stopPropagation()">
+    <label>difficulty <span class="val" id="diffVal"></span>
+      <input type="range" id="diffRange" min="0" max="3" step="1"></label>
     <label>walk speed <span class="val" id="spdVal"></span>
       <input type="range" id="spdRange" min="6" max="28" step="1"></label>
     <label>turn speed <span class="val" id="turnVal"></span>
@@ -158,9 +163,8 @@
     <div class="music">
       <label>music volume <span class="val" id="volVal"></span>
         <input type="range" id="volRange" min="0" max="1" step="0.05"></label>
-      <label>add your own tracks
-        <input type="file" id="musicPick" accept="audio/*" multiple></label>
-      <label>&nbsp;<span class="val" id="trackCount"></span></label>
+      <label>track <span class="val" id="trackCount"></span>
+        <span class="trackbtns"><button type="button" id="prevBtn">◀ prev</button><button type="button" id="nextBtn">next ▶</button></span></label>
     </div>
   </div>
   <div class="cta">Click to play</div>
@@ -171,6 +175,8 @@
   <h1>Paused</h1>
   <p class="tag">Click to get back out there.</p>
   <div class="settings" onclick="event.stopPropagation()">
+    <label>difficulty <span class="val" id="diffVal2"></span>
+      <input type="range" id="diffRange2" min="0" max="3" step="1"></label>
     <label>walk speed <span class="val" id="spdVal2"></span>
       <input type="range" id="spdRange2" min="6" max="28" step="1"></label>
     <label>turn speed <span class="val" id="turnVal2"></span>
@@ -180,9 +186,8 @@
     <div class="music">
       <label>music volume <span class="val" id="volVal2"></span>
         <input type="range" id="volRange2" min="0" max="1" step="0.05"></label>
-      <label>add your own tracks
-        <input type="file" id="musicPick2" accept="audio/*" multiple></label>
-      <label>&nbsp;<span class="val" id="trackCount2"></span></label>
+      <label>track <span class="val" id="trackCount2"></span>
+        <span class="trackbtns"><button type="button" id="prevBtn2">◀ prev</button><button type="button" id="nextBtn2">next ▶</button></span></label>
     </div>
   </div>
   <div class="cta">Resume</div>
@@ -203,6 +208,24 @@
    Same loop as the grey-box: mark / defend / refuel.
    All feel-numbers live in TUNE.
    ============================================================ */
+
+// ---- difficulty ----
+// Knobs scale the AI only. 'medium' is deliberately stronger than the old default.
+const DIFF = {
+  easy:   { name:'EASY',   spd:0.86, think:0.55, fill:0.85, drain:1.20, poop:0.20, retreat:22, sprint:false, defend:0.6 },
+  medium: { name:'MEDIUM', spd:1.00, think:0.32, fill:1.05, drain:0.95, poop:0.50, retreat:18, sprint:false, defend:1.0 },
+  expert: { name:'EXPERT', spd:1.12, think:0.18, fill:1.25, drain:0.80, poop:0.80, retreat:14, sprint:true,  defend:1.5 },
+  legend: { name:'LEGEND', spd:1.26, think:0.10, fill:1.5,  drain:0.62, poop:0.97, retreat:10, sprint:true,  defend:2.2 },
+};
+const DIFF_KEYS = ['easy','medium','expert','legend'];
+let difficulty = 'medium';
+function D(){ return DIFF[difficulty]; }
+function applyDifficulty(){
+  for (const d of dogs){
+    if (d.id==='you'){ d.mFill=1; d.mDrain=1; d.mSpd=1; continue; }
+    const k = D(); d.mFill=k.fill; d.mDrain=k.drain; d.mSpd=k.spd;
+  }
+}
 
 const TUNE = {
   ROUND_TIME: 120,   // sec
@@ -706,7 +729,7 @@ function spawnDogs(){
 
     return { id, mesh, stream, ring, home, bladder:TUNE.BLADDER_MAX, poop:TUNE.POOP_MAX, foodT:0,
              peeing:false, vulnerable:false, squatT:0, peeSide:1, daze:0, dazeCool:0, dazeCar:null,
-             ai:{ state:'roam', target:null, think:0 }, walk:0 };
+             ai:{ state:'roam', target:null, think:0, avoid:0, avoidDir:1, stuckT:0 }, walk:0 };
   };
   dogs = [ mk('you'), mk('ai1'), mk('ai2') ];
   dogs[0].mesh.rotation.y = yaw;
@@ -783,13 +806,13 @@ function applyPee(dog, o, dt){
   if (o.sealed && o.sealed !== dog.id) return;    // pooped turf is locked to its owner for good
   if (o.lock>0 && o.owner!==dog.id) return;
   if (dog.bladder<=0) return;
-  dog.bladder = clamp(dog.bladder - TUNE.PEE_DRAIN*dt, 0, TUNE.BLADDER_MAX);
+  dog.bladder = clamp(dog.bladder - TUNE.PEE_DRAIN*(dog.mDrain||1)*dt, 0, TUNE.BLADDER_MAX);
   if (o.owner===dog.id || o.owner===null){
-    const before=o.claim; o.owner=dog.id; o.claim=clamp(o.claim+TUNE.FILL*dt,0,100);
+    const before=o.claim; o.owner=dog.id; o.claim=clamp(o.claim+TUNE.FILL*(dog.mFill||1)*dt,0,100);
     if (dog.id==='you' && before<100 && o.claim>=100) stats.marks++;
   } else {
     if (dog.id==='you' && !o.contestedBy.you){ o.contestedBy.you=true; stats.contests++; }
-    o.claim -= TUNE.ERODE*dt;
+    o.claim -= TUNE.ERODE*(dog.mFill||1)*dt;
     if (o.claim<=0){ o.claim=0; o.owner=null; o.contestedBy={}; }
   }
 }
@@ -910,27 +933,29 @@ function blockOwners(){
 function tally(owners){ const t={you:0,ai1:0,ai2:0,none:0}; for(const o of owners) t[o||'none']++; return t; }
 
 function aiThink(dog,dt){
-  const ai=dog.ai; ai.think-=dt;
-  if (dog.bladder<16 && ai.state!=='retreat'){ ai.state='retreat'; ai.target=null; }
+  const ai=dog.ai, k=D(); ai.think-=dt;
+  if (dog.bladder<k.retreat && ai.state!=='retreat'){ ai.state='retreat'; ai.target=null; }
   if (ai.state==='retreat'){
     if (Math.hypot(dog.mesh.position.x-dog.home.x, dog.mesh.position.z-dog.home.z)<TUNE.HOME_R && dog.bladder>82){ ai.state='roam'; ai.target=null; }
     return;
   }
   if (ai.think>0 && ai.target) return;
-  ai.think=0.35;
+  ai.think=k.think;
   let best=null,bs=-1e9;
   for (const o of objects){
     if (o.lock>0 && o.owner!==dog.id) continue;
-    if (o.owner===dog.id && o.claim>85) continue;
+    if (o.owner===dog.id && o.claim>92) continue;
     if (o.sealed && o.sealed !== dog.id) continue;      // can't be taken, don't bother
-    const own = o.owner===dog.id?0.2 : o.owner===null?1.5 : 2.0;
+    // harder tiers care more about high-weight objects and about taking YOUR turf
+    const own = o.owner===dog.id ? 0.2 : (o.owner===null ? 1.5 : 1.4 + 0.9*k.defend);
     const dx=o.x-dog.mesh.position.x, dz=o.z-dog.mesh.position.z;
-    const s = o.weight*own*42 - Math.hypot(dx,dz);
+    const s = o.weight*own*(34 + 16*k.defend) - Math.hypot(dx,dz);
     if (s>bs){ bs=s; best=o; }
   }
   ai.target=best;
-  if (best && best.weight>=3 && best.owner && best.owner!==dog.id && dog.poop>0 &&
-      Math.hypot(best.x-dog.mesh.position.x,best.z-dog.mesh.position.z)<TUNE.MARK_RANGE && Math.random()<0.5)
+  // spend the poop charge on a valuable contested object
+  if (best && best.weight>=(k.defend>=1.5?2:3) && best.owner && best.owner!==dog.id && dog.poop>0 &&
+      Math.hypot(best.x-dog.mesh.position.x,best.z-dog.mesh.position.z)<TUNE.MARK_RANGE && Math.random()<k.poop)
     tryPoop(dog);
 }
 
@@ -993,16 +1018,32 @@ function stepDog(dog,dt,owners){
     dog.mesh.rotation.y = yaw;
   } else {
     aiThink(dog,dt);
-    const t = dog.ai.state==='retreat' ? dog.home : (dog.ai.target||{x:p.x,z:p.z});
+    // ---- AI ----
+    const ai = dog.ai, k = D();
+    const t = ai.state==='retreat' ? dog.home : (ai.target||{x:p.x,z:p.z});
     const dx=t.x-p.x, dz=t.z-p.z, m=Math.hypot(dx,dz);
-    if (m>0.6){ mx=dx/m; mz=dz/m; dog.mesh.rotation.y=Math.atan2(mx,mz); }
-    dog.peeing = false;
+    if (ai.state!=='retreat' && ai.target && m <= TUNE.MARK_RANGE*0.85 && dog.bladder>0){
+      // BUG FIX: the AI used to walk to a target and then never mark it, so
+      // opponents could only ever claim turf with the rare poop. Now they pee.
+      dog.peeing = true;
+      dog.mesh.rotation.y = Math.atan2(dx || 0.001, dz || 0.001);
+    } else {
+      dog.peeing = false;
+      if (m>0.6){ mx=dx/m; mz=dz/m; }
+      if (ai.avoid > 0){          // wedged on a wall -> steer around it instead of grinding
+        ai.avoid -= dt;
+        const a = Math.atan2(mx,mz) + ai.avoidDir*1.15;
+        mx = Math.sin(a); mz = Math.cos(a);
+      }
+      if (mx||mz) dog.mesh.rotation.y = Math.atan2(mx,mz);
+      if (k.sprint && m > 40) sprint = true;
+    }
   }
   const mag = Math.hypot(mx,mz);
   let moved=0;
   if (mag>0){
     mx/=mag; mz/=mag;
-    const spd = TUNE.SPEED*(sprint?TUNE.SPRINT:1)*(dog.vulnerable?TUNE.VULN_SPEED:1);
+    const spd = TUNE.SPEED*(dog.mSpd||1)*(sprint?TUNE.SPRINT:1)*(dog.vulnerable?TUNE.VULN_SPEED:1);
     const ox=p.x, oz=p.z;
     const fy = dog.y || 0;                              // feet height (jumping)
     let nx = clamp(ox + mx*spd*dt, -BOUND, BOUND);
@@ -1016,6 +1057,21 @@ function stepDog(dog,dt,owners){
     moved = Math.hypot(nx-ox, nz-oz);
   } else dog.blocked = false;
   dog.walk += moved;
+
+  // ---- AI unsticking: naive pathing + lots of collision boxes = wedged dogs ----
+  if (dog.id !== 'you'){
+    const ai = dog.ai;
+    if (dog.blocked && (ai.avoid||0) <= 0){
+      ai.avoid = 0.55 + Math.random()*0.45;
+      ai.avoidDir = Math.random()<0.5 ? 1 : -1;
+      if ((dog.y||0) <= 0.0001 && Math.random() < 0.35){ dog.vy = TUNE.JUMP_V; dog.y = 0.001; }  // try hopping it
+    }
+    ai.stuckT = (moved < 0.03 && !dog.peeing) ? (ai.stuckT||0) + dt : 0;
+    if (ai.stuckT > 1.4){        // properly jammed — abandon this target
+      ai.target = null; ai.think = 0; ai.stuckT = 0;
+      ai.avoid = 0.9; ai.avoidDir = Math.random()<0.5 ? 1 : -1;
+    }
+  }
 
   // ---- jump ----
   dog.y = dog.y || 0; dog.vy = dog.vy || 0;
@@ -1284,11 +1340,12 @@ function restart(){
     const s = spawnSpot(d.home);
     d.mesh.position.set(s.x,0,s.z);
     d.bladder=TUNE.BLADDER_MAX; d.poop=TUNE.POOP_MAX; d.foodT=0; d.peeing=false; d.vulnerable=false;
-    d.ai={state:'roam',target:null,think:0}; d.stream.visible=false; d.walk=0;
+    d.ai={state:'roam',target:null,think:0,avoid:0,avoidDir:1,stuckT:0}; d.stream.visible=false; d.walk=0;
     d.daze=0; d.dazeCool=0; d.dazeCar=null; d.squatT=0; d.mesh.rotation.x=0;
     d.y=0; d.vy=0; d.blocked=false;
   });
   prevOwners = new Array(9).fill(null);
+  applyDifficulty();
   timeLeft=TUNE.ROUND_TIME; over=false; stats=freshStats();
   yaw=0; camYaw=0; camFollowYaw=0; pitch=PITCH_DEFAULT; playerFwd=0;
   dogs[0].mesh.rotation.y=0;
@@ -1338,6 +1395,8 @@ function bindInput(){
     if (k==='d' && !e.repeat) jumpQueued = true;
     if (k==='m' && !e.repeat) toggleMute();
     if (k==='n' && !e.repeat) nextTrack();
+    if (k===',' && !e.repeat) prevTrack();
+    if (k==='.' && !e.repeat) nextTrack();
   });
   addEventListener('keyup', e=>{
     keys[e.key.toLowerCase()]=false;
@@ -1415,6 +1474,10 @@ function initSettings(){
   wire(['turnRange','turnRange2'],['turnVal','turnVal2'],'bd_turn', ()=>TUNE.TURN, x=>TUNE.TURN=x, x=>x.toFixed(1));
   wire(['camRange','camRange2'],['camVal','camVal2'],'bd_cam', ()=>TUNE.CAM_FOLLOW, x=>TUNE.CAM_FOLLOW=x, x=>Math.round(x));
   wire(['volRange','volRange2'],['volVal','volVal2'],'bd_vol', ()=>musicVol, x=>setMusicVol(x), x=>Math.round(x*100)+'%');
+  wire(['diffRange','diffRange2'],['diffVal','diffVal2'],'bd_diff',
+       ()=>DIFF_KEYS.indexOf(difficulty),
+       x=>{ difficulty = DIFF_KEYS[clamp(x|0,0,3)]; applyDifficulty(); },
+       x=>DIFF[DIFF_KEYS[clamp(x|0,0,3)]].name);
 }
 
 
@@ -1426,34 +1489,6 @@ function initSettings(){
 //     kept in IndexedDB so they survive a reload.
 let playlist = [], trackIx = -1, musicVol = 0.5, musicMuted = false, bgm = null;
 
-const IDB_NAME = 'bigdog-music', IDB_STORE = 'tracks';
-function idbOpen(){
-  return new Promise((res,rej)=>{
-    const r = indexedDB.open(IDB_NAME,1);
-    r.onupgradeneeded = ()=> r.result.createObjectStore(IDB_STORE,{ keyPath:'name' });
-    r.onsuccess = ()=> res(r.result);
-    r.onerror   = ()=> rej(r.error);
-  });
-}
-async function idbSave(name, blob){
-  try { const db = await idbOpen();
-    await new Promise((res,rej)=>{ const tx = db.transaction(IDB_STORE,'readwrite');
-      tx.objectStore(IDB_STORE).put({ name, blob }); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); });
-  } catch(e){ /* private mode / quota — tracks just won't persist */ }
-}
-async function idbLoadAll(){
-  try { const db = await idbOpen();
-    return await new Promise((res,rej)=>{ const rq = db.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).getAll();
-      rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error); });
-  } catch(e){ return []; }
-}
-async function idbClear(){
-  try { const db = await idbOpen();
-    await new Promise(res=>{ const tx = db.transaction(IDB_STORE,'readwrite');
-      tx.objectStore(IDB_STORE).clear(); tx.oncomplete=res; tx.onerror=res; });
-  } catch(e){}
-}
-
 function prettyName(fn){
   return fn.replace(/\.[a-z0-9]+$/i,'').replace(/[_-]+/g,' ').replace(/^\d+\s*[.\-]?\s*/,'').trim();
 }
@@ -1463,7 +1498,8 @@ function addTracks(list){
   if (trackIx < 0 && playlist.length && running) playTrack(0);
 }
 function paintTrackCount(){
-  const txt = playlist.length ? playlist.length + ' track' + (playlist.length>1?'s':'') + ' loaded' : 'no tracks yet';
+  const txt = !playlist.length ? 'no tracks'
+            : (trackIx>=0 ? (trackIx+1)+' / '+playlist.length : playlist.length + ' loaded');
   ['trackCount','trackCount2'].forEach(id=>{ const el=$(id); if(el) el.textContent = txt; });
 }
 
@@ -1498,9 +1534,10 @@ function playTrack(i){
   bgm.src = playlist[trackIx].url;
   setMusicVol(musicVol);
   bgm.play().catch(()=>{});     // blocked until a user gesture; the start click covers it
-  paintNowPlaying();
+  paintNowPlaying(); paintTrackCount();
 }
 function nextTrack(){ if (playlist.length) playTrack(trackIx+1); }
+function prevTrack(){ if (playlist.length) playTrack(trackIx-1); }
 function toggleMute(){ musicMuted = !musicMuted; setMusicVol(musicVol); paintNowPlaying(); }
 
 function initMusic(){
@@ -1508,21 +1545,8 @@ function initMusic(){
   bgm.addEventListener('ended', nextTrack);
   bgm.addEventListener('error', ()=>{ if (playlist.length>1) nextTrack(); });  // skip a missing file
   loadRepoPlaylist();
-  // restore whatever the player added last time
-  idbLoadAll().then(rows=>{
-    if (!rows.length) return;
-    addTracks(rows.map(r=>({ title: prettyName(r.name), url: URL.createObjectURL(r.blob), local:true })));
-  });
-  ['musicPick','musicPick2'].forEach(id=>{
-    const el = $(id); if (!el) return;
-    el.addEventListener('change', e=>{
-      const files = Array.from(e.target.files||[]);
-      addTracks(files.map(f=>({ title: prettyName(f.name), url: URL.createObjectURL(f), local:true })));
-      files.forEach(f=> idbSave(f.name, f));
-      if (trackIx < 0 && playlist.length) playTrack(0);
-      e.target.value = '';
-    });
-  });
+  [['prevBtn',prevTrack],['prevBtn2',prevTrack],['nextBtn',nextTrack],['nextBtn2',nextTrack]]
+    .forEach(([id,fn])=>{ const el=$(id); if (el) el.addEventListener('click', e=>{ e.stopPropagation(); fn(); }); });
   paintTrackCount();
 }
 
@@ -1532,6 +1556,7 @@ function boot(){
   bindInput();
   initSettings();
   initMusic();
+  applyDifficulty();
   dogs[0].mesh.visible = true;
   $('buildLabel').textContent = BUILD;
   $('buildtag').textContent = BUILD;
