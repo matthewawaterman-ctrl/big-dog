@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-021">
+<meta name="build" content="bd-022">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -55,6 +55,11 @@
   #gps{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);display:none;font-size:17px;
     background:rgba(7,5,15,.6);border-radius:22px;padding:7px 18px;white-space:nowrap;font-weight:bold}
   #gpsneedle{display:inline-block;font-size:22px;margin-right:9px;vertical-align:-2px}
+  #nowplaying{position:absolute;left:16px;top:54px;font-size:13px;opacity:.75;color:#ffd34d;
+    max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .settings .music{flex-basis:100%;display:flex;gap:24px;justify-content:center;align-items:flex-end;
+    flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.14);padding-top:12px;margin-top:4px}
+  .settings input[type=file]{font:inherit;font-size:12px;color:#cfd3da;width:210px;cursor:pointer}
   #fps{position:absolute;left:16px;top:34px;font-size:13px;opacity:.6;color:#9fe6b0}
   #toast{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font-size:18px;color:#ffd34d;
     background:rgba(7,5,15,.72);border:1px solid rgba(255,211,77,.4);border-radius:10px;padding:8px 18px;
@@ -121,8 +126,10 @@
   <div id="cross"></div>
   <canvas id="mini" width="300" height="300"></canvas>
   <div id="viewtag">3rd person · press C</div>
-  <div id="ctrls"><b>Space</b> pee · <b>F</b> poop · <b>D</b> jump · <b>C</b> view &nbsp;|&nbsp; move: <b>&larr;&uarr;&darr;&rarr;</b> or <b>L P ; '</b></div>
+  <div id="ctrls"><b>Space</b> pee · <b>F</b> poop · <b>D</b> jump · <b>C</b> view · <b>M</b> mute · <b>N</b> next &nbsp;|&nbsp; move: <b>&larr;&uarr;&darr;&rarr;</b> or <b>L P ; '</b></div>
   <div id="toast"></div>
+  <div id="nowplaying"></div>
+  <audio id="bgm"></audio>
   <div id="gps"><span id="gpsneedle">&#9650;</span><span id="gpsdist"></span></div>
   <div id="fps"></div>
   <div id="prompt">Hold <b>Space</b> to mark · <b>P</b> to poop</div>
@@ -148,6 +155,13 @@
       <input type="range" id="turnRange" min="0.4" max="2.6" step="0.05"></label>
     <label>camera follow <span class="val" id="camVal"></span>
       <input type="range" id="camRange" min="3" max="27" step="1"></label>
+    <div class="music">
+      <label>music volume <span class="val" id="volVal"></span>
+        <input type="range" id="volRange" min="0" max="1" step="0.05"></label>
+      <label>add your own tracks
+        <input type="file" id="musicPick" accept="audio/*" multiple></label>
+      <label>&nbsp;<span class="val" id="trackCount"></span></label>
+    </div>
   </div>
   <div class="cta">Click to play</div>
   <div class="buildline">build <b id="buildLabel"></b></div>
@@ -163,6 +177,13 @@
       <input type="range" id="turnRange2" min="0.4" max="2.6" step="0.05"></label>
     <label>camera follow <span class="val" id="camVal2"></span>
       <input type="range" id="camRange2" min="3" max="27" step="1"></label>
+    <div class="music">
+      <label>music volume <span class="val" id="volVal2"></span>
+        <input type="range" id="volRange2" min="0" max="1" step="0.05"></label>
+      <label>add your own tracks
+        <input type="file" id="musicPick2" accept="audio/*" multiple></label>
+      <label>&nbsp;<span class="val" id="trackCount2"></span></label>
+    </div>
   </div>
   <div class="cta">Resume</div>
 </div>
@@ -1275,7 +1296,13 @@ function restart(){
 
 function bindInput(){
   const cv = renderer.domElement;
-  const requestPlay = ()=>{ if (!over) cv.requestPointerLock(); };
+  const requestPlay = ()=>{
+    if (over) return;
+    cv.requestPointerLock();
+    // browsers block audio until a user gesture — this click is it
+    if (playlist.length && trackIx < 0) playTrack(0);
+    else if (bgm && bgm.paused && playlist.length) bgm.play().catch(()=>{});
+  };
   $('startOv').addEventListener('click', requestPlay);
   $('pauseOv').addEventListener('click', requestPlay);
   $('endOv').addEventListener('click', ()=>{ restart(); cv.requestPointerLock(); });
@@ -1284,6 +1311,7 @@ function bindInput(){
     running = (document.pointerLockElement===cv) && !over;
     if (running) showOnly(null);
     else { for (const kk in keys) keys[kk]=false; if (!over) showOnly('pauseOv'); }
+    setMusicVol(musicVol);        // quieter while the menu is up
   });
   // Trackpad/mouse no longer steers. Left-click is just an extra "pee" button.
   // Mouse buttons are ghost-proof backups for the keyboard: left = pee, right = poop.
@@ -1308,6 +1336,8 @@ function bindInput(){
     if (k==='c'){ firstPerson=!firstPerson; dogs[0].mesh.visible=!firstPerson; }
     if (k==='f') tryPoop(dogs[0]);
     if (k==='d' && !e.repeat) jumpQueued = true;
+    if (k==='m' && !e.repeat) toggleMute();
+    if (k==='n' && !e.repeat) nextTrack();
   });
   addEventListener('keyup', e=>{
     keys[e.key.toLowerCase()]=false;
@@ -1384,6 +1414,116 @@ function initSettings(){
   wire(['spdRange','spdRange2'],['spdVal','spdVal2'],'bd_speed', ()=>TUNE.SPEED, x=>TUNE.SPEED=x, x=>Math.round(x));
   wire(['turnRange','turnRange2'],['turnVal','turnVal2'],'bd_turn', ()=>TUNE.TURN, x=>TUNE.TURN=x, x=>x.toFixed(1));
   wire(['camRange','camRange2'],['camVal','camVal2'],'bd_cam', ()=>TUNE.CAM_FOLLOW, x=>TUNE.CAM_FOLLOW=x, x=>Math.round(x));
+  wire(['volRange','volRange2'],['volVal','volVal2'],'bd_vol', ()=>musicVol, x=>setMusicVol(x), x=>Math.round(x*100)+'%');
+}
+
+
+// ============================ MUSIC ============================
+// Two sources, both optional:
+//  1. A playlist committed to the repo — drop files in public/music/ plus a
+//     playlist.json, and everyone who loads the game hears them.
+//  2. Tracks the player picks from their own machine — never uploaded anywhere,
+//     kept in IndexedDB so they survive a reload.
+let playlist = [], trackIx = -1, musicVol = 0.5, musicMuted = false, bgm = null;
+
+const IDB_NAME = 'bigdog-music', IDB_STORE = 'tracks';
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open(IDB_NAME,1);
+    r.onupgradeneeded = ()=> r.result.createObjectStore(IDB_STORE,{ keyPath:'name' });
+    r.onsuccess = ()=> res(r.result);
+    r.onerror   = ()=> rej(r.error);
+  });
+}
+async function idbSave(name, blob){
+  try { const db = await idbOpen();
+    await new Promise((res,rej)=>{ const tx = db.transaction(IDB_STORE,'readwrite');
+      tx.objectStore(IDB_STORE).put({ name, blob }); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); });
+  } catch(e){ /* private mode / quota — tracks just won't persist */ }
+}
+async function idbLoadAll(){
+  try { const db = await idbOpen();
+    return await new Promise((res,rej)=>{ const rq = db.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).getAll();
+      rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error); });
+  } catch(e){ return []; }
+}
+async function idbClear(){
+  try { const db = await idbOpen();
+    await new Promise(res=>{ const tx = db.transaction(IDB_STORE,'readwrite');
+      tx.objectStore(IDB_STORE).clear(); tx.oncomplete=res; tx.onerror=res; });
+  } catch(e){}
+}
+
+function prettyName(fn){
+  return fn.replace(/\.[a-z0-9]+$/i,'').replace(/[_-]+/g,' ').replace(/^\d+\s*[.\-]?\s*/,'').trim();
+}
+function addTracks(list){
+  for (const t of list) if (!playlist.some(p=>p.title===t.title)) playlist.push(t);
+  paintTrackCount();
+  if (trackIx < 0 && playlist.length && running) playTrack(0);
+}
+function paintTrackCount(){
+  const txt = playlist.length ? playlist.length + ' track' + (playlist.length>1?'s':'') + ' loaded' : 'no tracks yet';
+  ['trackCount','trackCount2'].forEach(id=>{ const el=$(id); if(el) el.textContent = txt; });
+}
+
+// pull an optional repo playlist: public/music/playlist.json
+async function loadRepoPlaylist(){
+  try {
+    const r = await fetch('./music/playlist.json', { cache:'no-store' });
+    if (!r.ok) return;
+    const data = await r.json();
+    const list = (Array.isArray(data) ? data : data.tracks || []).map(t=>{
+      if (typeof t === 'string') return { title: prettyName(t), url: './music/'+t };
+      return { title: t.title || prettyName(t.file||''), artist: t.artist||'', url: './music/'+t.file };
+    }).filter(t=>t.url);
+    if (list.length) addTracks(list);
+  } catch(e){ /* no playlist committed — that's fine */ }
+}
+
+function setMusicVol(v){
+  musicVol = clamp(v,0,1);
+  if (bgm) bgm.volume = musicMuted ? 0 : musicVol * (running ? 1 : 0.35);  // duck while paused
+}
+function paintNowPlaying(){
+  const el = $('nowplaying');
+  if (!el) return;
+  if (trackIx < 0 || !playlist[trackIx]){ el.textContent = ''; return; }
+  const t = playlist[trackIx];
+  el.textContent = (musicMuted ? '\u266a muted \u2014 ' : '\u266a ') + t.title + (t.artist ? ' \u2014 '+t.artist : '');
+}
+function playTrack(i){
+  if (!playlist.length || !bgm) return;
+  trackIx = ((i % playlist.length) + playlist.length) % playlist.length;
+  bgm.src = playlist[trackIx].url;
+  setMusicVol(musicVol);
+  bgm.play().catch(()=>{});     // blocked until a user gesture; the start click covers it
+  paintNowPlaying();
+}
+function nextTrack(){ if (playlist.length) playTrack(trackIx+1); }
+function toggleMute(){ musicMuted = !musicMuted; setMusicVol(musicVol); paintNowPlaying(); }
+
+function initMusic(){
+  bgm = $('bgm');
+  bgm.addEventListener('ended', nextTrack);
+  bgm.addEventListener('error', ()=>{ if (playlist.length>1) nextTrack(); });  // skip a missing file
+  loadRepoPlaylist();
+  // restore whatever the player added last time
+  idbLoadAll().then(rows=>{
+    if (!rows.length) return;
+    addTracks(rows.map(r=>({ title: prettyName(r.name), url: URL.createObjectURL(r.blob), local:true })));
+  });
+  ['musicPick','musicPick2'].forEach(id=>{
+    const el = $(id); if (!el) return;
+    el.addEventListener('change', e=>{
+      const files = Array.from(e.target.files||[]);
+      addTracks(files.map(f=>({ title: prettyName(f.name), url: URL.createObjectURL(f), local:true })));
+      files.forEach(f=> idbSave(f.name, f));
+      if (trackIx < 0 && playlist.length) playTrack(0);
+      e.target.value = '';
+    });
+  });
+  paintTrackCount();
 }
 
 function boot(){
@@ -1391,6 +1531,7 @@ function boot(){
   buildChips();
   bindInput();
   initSettings();
+  initMusic();
   dogs[0].mesh.visible = true;
   $('buildLabel').textContent = BUILD;
   $('buildtag').textContent = BUILD;
