@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-025">
+<meta name="build" content="bd-026">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -156,6 +156,8 @@
   </div>
   <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
   <div class="settings" onclick="event.stopPropagation()">
+    <label>graphics <span class="val" id="gfxVal"></span>
+      <input type="range" id="gfxRange" min="0" max="2" step="1"></label>
     <label>difficulty <span class="val" id="diffVal"></span>
       <input type="range" id="diffRange" min="0" max="3" step="1"></label>
     <label>walk speed <span class="val" id="spdVal"></span>
@@ -179,6 +181,8 @@
   <h1>Paused</h1>
   <p class="tag">Click to get back out there.</p>
   <div class="settings" onclick="event.stopPropagation()">
+    <label>graphics <span class="val" id="gfxVal2"></span>
+      <input type="range" id="gfxRange2" min="0" max="2" step="1"></label>
     <label>difficulty <span class="val" id="diffVal2"></span>
       <input type="range" id="diffRange2" min="0" max="3" step="1"></label>
     <label>walk speed <span class="val" id="spdVal2"></span>
@@ -222,6 +226,30 @@ const DIFF = {
   legend: { name:'LEGEND', spd:1.26, think:0.10, fill:1.5,  drain:0.62, poop:0.97, retreat:10, sprint:true,  defend:2.2 },
 };
 const DIFF_KEYS = ['easy','medium','expert','legend'];
+
+// ---- graphics ----
+// Pixel fill is the dominant cost on integrated GPUs: a big window at 1.25x is
+// ~5.7M shaded pixels a frame, each doing a light + shadow lookup.
+const GFX = {
+  low:    { name:'LOW',    res:0.70, shadows:false, fog:[70,260],  far:340 },
+  medium: { name:'MEDIUM', res:0.90, shadows:true,  fog:[110,420], far:560 },
+  high:   { name:'HIGH',   res:1.25, shadows:true,  fog:[220,820], far:1600 },
+};
+const GFX_KEYS = ['low','medium','high'];
+let graphics = 'medium';
+function applyGraphics(){
+  const g = GFX[graphics];
+  if (!renderer) return;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, g.res));
+  renderer.setSize(innerWidth, innerHeight);
+  if (renderer.shadowMap.enabled !== g.shadows){
+    renderer.shadowMap.enabled = g.shadows;
+    scene.traverse(o=>{ if (o.material){ const ms = Array.isArray(o.material)?o.material:[o.material];
+      ms.forEach(m=> m.needsUpdate = true); } });
+  }
+  if (scene.fog){ scene.fog.near = g.fog[0]; scene.fog.far = g.fog[1]; }
+  if (camera){ camera.far = g.far; camera.updateProjectionMatrix(); }
+}
 let difficulty = 'medium';
 function D(){ return DIFF[difficulty]; }
 function applyDifficulty(){
@@ -580,7 +608,8 @@ function buildInstances(){
     E.set(0,ry,0); Q.setFromEuler(E); V.set(px,py,pz); S.set(sx,sy,sz);
     M.compose(V,Q,S); im.setMatrixAt(i,M);
   };
-  const add = im => { im.instanceMatrix.needsUpdate = true; im.castShadow=false; im.receiveShadow=false; scene.add(im); };
+  const add = im => { im.instanceMatrix.needsUpdate = true; im.castShadow=false; im.receiveShadow=false;
+                      im.frustumCulled = false; scene.add(im); };
 
   // one body+roof batch per palette entry, so each batch is a single solid color
   for (let k=0;k<HOUSE_WALLS.length;k++){
@@ -624,8 +653,8 @@ function buildInstances(){
     add(hm);
   }
   // back-yard props: batch by (geometry, color) so ~700 parts become ~12 draw calls
-  const cylGeo = new THREE.CylinderGeometry(0.5,0.5,1,10);
-  const sphGeo = new THREE.SphereGeometry(0.5,10,8);
+  const cylGeo = new THREE.CylinderGeometry(0.5,0.5,1,6);
+  const sphGeo = new THREE.SphereGeometry(0.5,8,6);
   const geoFor = { box:boxGeo, cone:coneGeo, cyl:cylGeo, sph:sphGeo };
   const buckets = {};
   for (const p of propParts){
@@ -1227,7 +1256,7 @@ function edgeMat(id){
 // Up to ~500 objects can be owned at once; this draws them in 3 calls.
 const markMeshes = {};
 function buildMarkers(){
-  const geo = new THREE.CircleGeometry(1,18);
+  const geo = new THREE.CircleGeometry(1,12);
   for (const id of ['you','ai1','ai2']){
     const m = new THREE.InstancedMesh(geo,
       new THREE.MeshBasicMaterial({ color:oc(id).hex, transparent:true, opacity:0.62, side:THREE.DoubleSide }),
@@ -1477,7 +1506,7 @@ function bindInput(){
 
   addEventListener('resize', ()=>{
     camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth,innerHeight);
+    applyGraphics();                       // keeps the chosen resolution scale
   });
 }
 
@@ -1543,6 +1572,10 @@ function initSettings(){
   wire(['turnRange','turnRange2'],['turnVal','turnVal2'],'bd_turn', ()=>TUNE.TURN, x=>TUNE.TURN=x, x=>x.toFixed(1));
   wire(['camRange','camRange2'],['camVal','camVal2'],'bd_cam', ()=>TUNE.CAM_FOLLOW, x=>TUNE.CAM_FOLLOW=x, x=>Math.round(x));
   wire(['volRange','volRange2'],['volVal','volVal2'],'bd_vol', ()=>musicVol, x=>setMusicVol(x), x=>Math.round(x*100)+'%');
+  wire(['gfxRange','gfxRange2'],['gfxVal','gfxVal2'],'bd_gfx',
+       ()=>GFX_KEYS.indexOf(graphics),
+       x=>{ graphics = GFX_KEYS[clamp(x|0,0,2)]; applyGraphics(); },
+       x=>GFX[GFX_KEYS[clamp(x|0,0,2)]].name);
   wire(['diffRange','diffRange2'],['diffVal','diffVal2'],'bd_diff',
        ()=>DIFF_KEYS.indexOf(difficulty),
        x=>{ difficulty = DIFF_KEYS[clamp(x|0,0,3)]; applyDifficulty(); },
@@ -1624,6 +1657,7 @@ function boot(){
   buildChips();
   bindInput();
   initSettings();
+  applyGraphics();
   initMusic();
   applyDifficulty();
   dogs[0].mesh.visible = true;
