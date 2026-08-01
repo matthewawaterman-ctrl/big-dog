@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-032">
+<meta name="build" content="bd-033">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -394,7 +394,7 @@ let dogs = [], objects = [], tiles = [], poops = [], cars = [];
 let prevOwners = new Array(9).fill(null);
 let fpsFrames = 0, fpsAccum = 0;
 let jumpQueued = false;
-let playerCfg = codeToCfg(BREEDS['Retriever (medium)']) || defaultDogCfg();
+let playerCfg = null;   // resolved in initPlayerCfg(); BREEDS isn't initialised yet here
 let frameOwners = null;
 let yaw = 0, pitch = 0.12, camYaw = 0, camFollowYaw = 0, playerFwd = 0, firstPerson = false;
 const PITCH_DEFAULT = 0.12;
@@ -2026,9 +2026,6 @@ function paintCreator(){
 }
 
 function initCreator(){
-  // restore a saved dog
-  try { const saved = codeToCfg(localStorage.getItem('bd_dog')); if (saved) playerCfg = saved; } catch(e){}
-
   const sel = $('presetSel');
   sel.innerHTML = '<option value="">— presets —</option>' +
     Object.keys(DOG_PRESETS).map(n=>`<option value="${DOG_PRESETS[n]}">${n}</option>`).join('');
@@ -2070,7 +2067,14 @@ function initCreator(){
   paintCreator();
 }
 
+function initPlayerCfg(){
+  let saved = null;
+  try { saved = codeToCfg(localStorage.getItem('bd_dog')); } catch(e){}
+  playerCfg = saved || codeToCfg(BREEDS['Retriever (medium)']) || defaultDogCfg();
+}
+
 function boot(){
+  initPlayerCfg();          // must run before buildWorld/spawnDogs reads playerCfg
   initThree();
   buildChips();
   bindInput();
