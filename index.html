@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-027">
+<meta name="build" content="bd-028">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -65,6 +65,20 @@
   .trackbtns button{font:inherit;font-size:12px;color:#0f0a1e;background:#ffd34d;border:0;
     border-radius:7px;padding:5px 12px;cursor:pointer;font-weight:bold}
   .trackbtns button:hover{background:#fff0a8}
+  #creatorOv{justify-content:flex-end;padding-bottom:28px;background:linear-gradient(180deg,rgba(7,5,15,0) 0%,rgba(7,5,15,0) 34%,rgba(7,5,15,.82) 60%,rgba(7,5,15,.94) 100%)}
+  .crtitle{font-size:22px;font-weight:bold;letter-spacing:2px;color:#ffd34d;margin-bottom:12px}
+  .crgrid{display:grid;grid-template-columns:repeat(3,minmax(150px,200px));gap:10px 26px;
+    font-size:13px;cursor:default}
+  .crgrid label{display:flex;flex-direction:column;gap:3px;align-items:center}
+  .crgrid input[type=range]{width:100%;accent-color:#ffd34d;cursor:pointer}
+  .crrow{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap;justify-content:center;cursor:default}
+  .crrow button,.crrow select,.crrow input{font:inherit;font-size:13px;border-radius:8px;border:0;padding:6px 12px}
+  .crrow button{background:#ffd34d;color:#0f0a1e;font-weight:bold;cursor:pointer}
+  .crrow select{background:#241c3a;color:#eee;cursor:pointer}
+  .crrow input{background:#241c3a;color:#eee}
+  .crcode{margin-top:12px;font-size:15px;opacity:.9}
+  .crcode b{color:#ffd34d;font-size:18px;letter-spacing:1px;background:rgba(255,211,77,.12);
+    padding:4px 12px;border-radius:8px}
   #fps{position:absolute;left:16px;top:34px;font-size:13px;opacity:.6;color:#9fe6b0}
   #toast{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font-size:18px;color:#ffd34d;
     background:rgba(7,5,15,.72);border:1px solid rgba(255,211,77,.4);border-radius:10px;padding:8px 18px;
@@ -142,6 +156,28 @@
 </div>
 
 <!-- ===== overlays ===== -->
+<div class="ov hide" id="creatorOv">
+  <div class="crtitle">DESIGN YOUR DOG</div>
+  <div class="crgrid" onclick="event.stopPropagation()">
+    <label>coat <span class="val" id="coatVal"></span><input type="range" id="coatR" min="0" max="11" step="1"></label>
+    <label>markings colour <span class="val" id="patchVal"></span><input type="range" id="patchR" min="0" max="11" step="1"></label>
+    <label>markings <span class="val" id="markVal"></span><input type="range" id="markR" min="0" max="4" step="1"></label>
+    <label>ears <span class="val" id="earVal"></span><input type="range" id="earR" min="0" max="3" step="1"></label>
+    <label>tail <span class="val" id="tailVal"></span><input type="range" id="tailR" min="0" max="3" step="1"></label>
+    <label>snout <span class="val" id="snoutVal"></span><input type="range" id="snoutR" min="60" max="160" step="5"></label>
+    <label>build <span class="val" id="buildVal"></span><input type="range" id="buildR" min="80" max="130" step="5"></label>
+    <label>leg length <span class="val" id="legVal"></span><input type="range" id="legR" min="70" max="140" step="5"></label>
+    <label>size <span class="val" id="sizeVal"></span><input type="range" id="sizeR" min="70" max="130" step="5"></label>
+  </div>
+  <div class="crrow" onclick="event.stopPropagation()">
+    <button type="button" id="randBtn">shuffle</button>
+    <select id="presetSel"></select>
+    <input type="text" id="codeIn" placeholder="paste a code" size="22">
+    <button type="button" id="loadBtn">load</button>
+  </div>
+  <div class="crcode">CODE <b id="dogCode"></b></div>
+  <div class="cta" id="crDone">done</div>
+</div>
 <div class="ov" id="startOv">
   <h1>BIG&nbsp;DOG</h1>
   <p class="tag">Run the block. Mark your turf. Out-claim the strays before the buzzer.</p>
@@ -176,6 +212,7 @@
         <span class="trackbtns"><button type="button" id="prevBtn">◀ prev</button><button type="button" id="nextBtn">next ▶</button></span></label>
     </div>
   </div>
+  <div class="cta" id="openCreator" style="margin-bottom:10px">\ud83d\udc36 design your dog</div>
   <div class="cta">Click to play</div>
   <div class="buildline">build <b id="buildLabel"></b></div>
 </div>
@@ -350,6 +387,7 @@ let dogs = [], objects = [], tiles = [], poops = [], cars = [];
 let prevOwners = new Array(9).fill(null);
 let fpsFrames = 0, fpsAccum = 0;
 let jumpQueued = false;
+let playerCfg = defaultDogCfg();
 let frameOwners = null;
 let yaw = 0, pitch = 0.12, camYaw = 0, camFollowYaw = 0, playerFwd = 0, firstPerson = false;
 const PITCH_DEFAULT = 0.12;
@@ -422,6 +460,27 @@ function buildWorld(){
       e.position.set(bx(c)+ex, EH/2, bz(r)+ez); scene.add(e);
       tiles[ti].edges.push(e); tiles[ti].edgeMats.push(em);
     });
+  }
+
+  // dashed centre line down every road, so the two lanes are readable
+  {
+    const dashGeo = new THREE.BoxGeometry(1,1,1);
+    const dashLen = 7, gap = 7, span = HALF*2;
+    const perRoad = Math.floor(span/(dashLen+gap));
+    const lanesLocal = [-1.5,-0.5,0.5,1.5].map(k=>k*B);
+    const dashes = new THREE.InstancedMesh(dashGeo,
+      new THREE.MeshBasicMaterial({ color:0xe8e2c8 }), lanesLocal.length*2*perRoad);
+    const M2=new THREE.Matrix4(), Q2=new THREE.Quaternion(), V2=new THREE.Vector3(), S2=new THREE.Vector3();
+    let di=0;
+    for (const L of lanesLocal){
+      for (let i=0;i<perRoad;i++){
+        const p = -HALF + i*(dashLen+gap) + dashLen/2;
+        V2.set(L,0.03,p); S2.set(0.45,0.02,dashLen); M2.compose(V2,Q2,S2); dashes.setMatrixAt(di++,M2);
+        V2.set(p,0.03,L); S2.set(dashLen,0.02,0.45); M2.compose(V2,Q2,S2); dashes.setMatrixAt(di++,M2);
+      }
+    }
+    dashes.count = di; dashes.instanceMatrix.needsUpdate = true;
+    dashes.frustumCulled = false; scene.add(dashes);
   }
 
   // cheap perimeter wall (4 boxes instead of hundreds of posts)
@@ -765,32 +824,145 @@ function buildObjects(){
   buildMarkers();            // 3 shared ownership-marker batches
 }
 
-function makeDog(hex){
+// ===================== DOG BUILDER =====================
+// Every dog is built from a config, so the player can design theirs and AI dogs
+// get random breeds. Shapes are spheres/tapered cylinders rather than plain boxes
+// so it reads as an animal instead of a brick with legs.
+const COAT = [0x2b2b2b,0x4a4a4a,0x8d8d8d,0xe8dcc0,0xd2a679,0xe0a83c,
+              0xa8552a,0x6b4423,0xf2efe8,0x6f7f96,0x9b5cff,0x7fd1a8];
+const COAT_NAMES = ['black','charcoal','grey','cream','tan','gold',
+                    'rust','chocolate','white','blue merle','violet','mint'];
+const EAR_NAMES = ['floppy','pointy','round','long'];
+const TAIL_NAMES = ['curl','straight','plume','stub'];
+const MARK_NAMES = ['none','eye patch','chest blaze','socks','saddle'];
+
+function defaultDogCfg(){
+  return { coat:10, patch:8, mark:2, ear:0, tail:0, snout:1.0, build:1.0, legs:1.0, size:1.0 };
+}
+function randomDogCfg(){
+  const r=(a,b)=>a+Math.random()*(b-a);
+  return { coat:(Math.random()*COAT.length)|0, patch:(Math.random()*COAT.length)|0,
+           mark:(Math.random()*5)|0, ear:(Math.random()*4)|0, tail:(Math.random()*4)|0,
+           snout:r(0.7,1.4), build:r(0.85,1.2), legs:r(0.8,1.25), size:r(0.9,1.1) };
+}
+function cfgToCode(c){
+  return [c.coat,c.patch,c.mark,c.ear,c.tail,
+          Math.round(c.snout*100),Math.round(c.build*100),
+          Math.round(c.legs*100),Math.round(c.size*100)].join('.');
+}
+function codeToCfg(str){
+  const p = String(str||'').trim().split('.').map(Number);
+  if (p.length!==9 || p.some(n=>!isFinite(n))) return null;
+  return { coat:clamp(p[0]|0,0,COAT.length-1), patch:clamp(p[1]|0,0,COAT.length-1),
+           mark:clamp(p[2]|0,0,4), ear:clamp(p[3]|0,0,3), tail:clamp(p[4]|0,0,3),
+           snout:clamp(p[5]/100,0.6,1.6), build:clamp(p[6]/100,0.8,1.3),
+           legs:clamp(p[7]/100,0.7,1.4), size:clamp(p[8]/100,0.7,1.3) };
+}
+
+// Premade characters. Send me a code from the creator and I'll add it here by name.
+const DOG_PRESETS = {
+  'Big Dog':   '10.8.2.0.0.100.100.100.100',
+  'Scrapper':  '6.3.1.1.1.85.90.115.90',
+  'Loaf':      '4.8.3.0.3.75.125.80.95',
+  'Shadow':    '0.0.0.1.0.105.95.110.105',
+  'Cloud':     '8.2.4.2.2.95.110.95.100',
+};
+
+function makeDog(teamHex, cfg){
+  cfg = cfg || defaultDogCfg();
   const g = new THREE.Group();
-  const mat = new THREE.MeshLambertMaterial({ color:hex });
-  const dark = new THREE.MeshLambertMaterial({ color:0x1a1a1a });
-  const part = (geo,m,x,y,z)=>{ const e=new THREE.Mesh(geo,m); e.position.set(x,y,z); e.castShadow=true; g.add(e); return e; };
-  part(new THREE.BoxGeometry(1.0,0.9,1.8), mat, 0,1.0,0);
-  const head = part(new THREE.BoxGeometry(0.8,0.8,0.8), mat, 0,1.35,1.05);
-  part(new THREE.BoxGeometry(0.42,0.36,0.42), mat, 0,1.2,1.5);
-  part(new THREE.BoxGeometry(0.18,0.18,0.12), dark, 0,1.25,1.73);
-  const earL = part(new THREE.BoxGeometry(0.2,0.36,0.15), mat, -0.3,1.82,0.98);
-  const earR = part(new THREE.BoxGeometry(0.2,0.36,0.15), mat, 0.3,1.82,0.98);
+  const body = new THREE.Group(); body.scale.setScalar(cfg.size); g.add(body);
+
+  const coat  = new THREE.MeshLambertMaterial({ color:COAT[cfg.coat] });
+  const patch = new THREE.MeshLambertMaterial({ color:COAT[cfg.patch] });
+  const dark  = new THREE.MeshLambertMaterial({ color:0x1a1a1a });
+  const team  = new THREE.MeshLambertMaterial({ color:teamHex });
+
+  const SPH = new THREE.SphereGeometry(0.5,10,8);
+  const CYL = new THREE.CylinderGeometry(0.5,0.5,1,8);
+  const BOX = new THREE.BoxGeometry(1,1,1);
+  const add = (geo,m,x,y,z,sx,sy,sz,parent)=>{
+    const e = new THREE.Mesh(geo,m); e.position.set(x,y,z); e.scale.set(sx,sy,sz);
+    e.castShadow = true; (parent||body).add(e); return e;
+  };
+
+  const B = cfg.build, LL = cfg.legs;
+  const hipY = 0.92*LL;                       // body rides on the legs
+
+  // ---- torso: ribcage + haunches + a filler so it reads as one tapered animal
+  add(SPH, coat, 0, hipY+0.06, 0.30, 1.15*B, 1.10, 1.55);
+  add(SPH, coat, 0, hipY+0.02,-0.46, 1.12*B, 1.06, 1.20);
+  add(BOX, coat, 0, hipY+0.03,-0.10, 0.92*B, 0.92, 1.05);
+  if (cfg.mark===4) add(BOX, patch, 0, hipY+0.30,-0.10, 0.94*B, 0.55, 1.02);   // saddle
+  if (cfg.mark===2) add(SPH, patch, 0, hipY-0.14, 0.62, 0.42, 0.55, 0.42);     // chest blaze
+
+  // ---- neck angled up to the head
+  const neck = add(CYL, coat, 0, hipY+0.42, 0.62, 0.44, 0.72, 0.44);
+  neck.rotation.x = -0.55;
+
+  // ---- head
+  const head = new THREE.Group();
+  head.position.set(0, hipY+0.80, 0.90); body.add(head);
+  const headY0 = head.position.y;
+  add(SPH, coat, 0,0,0, 0.78,0.76,0.82, head);
+  const sn = cfg.snout;
+  add(BOX, coat, 0,-0.13, 0.34+0.13*sn, 0.36,0.30,0.52*sn, head);   // muzzle
+  add(SPH, dark, 0,-0.10, 0.58+0.26*sn, 0.17,0.15,0.15, head);      // nose
+  add(SPH, dark,-0.20, 0.10, 0.32, 0.11,0.13,0.09, head);           // eyes
+  add(SPH, dark, 0.20, 0.10, 0.32, 0.11,0.13,0.09, head);
+  if (cfg.mark===1) add(SPH, patch, -0.22, 0.10, 0.24, 0.30,0.30,0.22, head);  // eye patch
+
+  // ---- ears (pivot at the base so they can flap)
+  const ears = [];
+  for (const sx of [-1,1]){
+    const p = new THREE.Group(); p.position.set(sx*0.30, 0.28, 0.02); head.add(p);
+    if (cfg.ear===0)      { const e=add(BOX, patch, 0,-0.24, -0.02, 0.20,0.52,0.13, p); e.rotation.z = sx*0.28; }
+    else if (cfg.ear===1) { const e=add(CYL, patch, 0, 0.22, 0, 0.22,0.52,0.16, p); e.rotation.z = sx*0.20;
+                            e.geometry = new THREE.CylinderGeometry(0.02,0.5,1,6); }
+    else if (cfg.ear===2) { add(SPH, patch, 0, 0.10, 0, 0.30,0.32,0.14, p); }
+    else                  { const e=add(BOX, patch, 0,-0.42, 0, 0.19,0.86,0.12, p); e.rotation.z = sx*0.16; }
+    ears.push(p);
+  }
+
+  // ---- legs: pivot at the shoulder/hip so the whole limb swings
   const legs = [];
-  for (const sx of [-0.35,0.35]) for (const sz of [-0.6,0.6])
-    legs.push(part(new THREE.CylinderGeometry(0.16,0.16,0.9,8), mat, sx,0.45,sz));
-  // tail on a pivot so it wags from the rump
-  const tailPivot = new THREE.Group(); tailPivot.position.set(0,1.2,-0.7); g.add(tailPivot);
-  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.16,0.95,8), mat);
-  tail.position.set(0,0,-0.35); tail.rotation.x = Math.PI/3; tail.castShadow = true; tailPivot.add(tail);
-  g.userData = { head, legs, tail:tailPivot, ears:[earL,earR] };
+  for (const sx of [-1,1]) for (const sz of [-0.50, 0.52]){
+    const p = new THREE.Group(); p.position.set(sx*0.34*B, hipY-0.06, sz); body.add(p);
+    const upper = add(CYL, coat, 0,-0.26*LL,0, 0.26,0.60*LL,0.26, p);
+    const lower = add(CYL, coat, 0,-0.68*LL,0, 0.21,0.52*LL,0.21, p);
+    const sock  = (cfg.mark===3) ? patch : coat;
+    add(SPH, sock, 0,-0.94*LL, 0.04, 0.28,0.20,0.34, p);            // paw
+    if (cfg.mark===3) lower.material = patch;
+    legs.push(p);
+  }
+
+  // ---- tail on a pivot at the rump
+  const tailPivot = new THREE.Group();
+  tailPivot.position.set(0, hipY+0.18, -0.86); body.add(tailPivot);
+  if (cfg.tail===3){                                    // stub
+    add(SPH, coat, 0,0.06,-0.10, 0.26,0.26,0.30, tailPivot);
+  } else if (cfg.tail===1){                             // straight
+    const t = add(CYL, coat, 0,0.16,-0.30, 0.15,0.90,0.15, tailPivot); t.rotation.x = 1.15;
+  } else if (cfg.tail===2){                             // plume
+    const t = add(CYL, coat, 0,0.20,-0.26, 0.16,0.80,0.16, tailPivot); t.rotation.x = 0.95;
+    add(SPH, patch, 0,0.52,-0.56, 0.34,0.44,0.34, tailPivot);
+  } else {                                              // curl
+    const a = add(CYL, coat, 0,0.20,-0.22, 0.16,0.66,0.16, tailPivot); a.rotation.x = 0.75;
+    const b = add(CYL, coat, 0,0.52,-0.40, 0.14,0.52,0.14, tailPivot); b.rotation.x = 2.1;
+  }
+
+  // ---- collar always shows the team color, so ownership stays readable
+  const collar = add(CYL, team, 0, hipY+0.52, 0.55, 0.50,0.16,0.50, body);
+  collar.rotation.x = -0.55;
+
+  g.userData = { head, headY0, legs, tail:tailPivot, ears, cfg };
   return g;
 }
 
 function spawnDogs(){
   const mk = id => {
     const isYou = id==='you';
-    const mesh = makeDog(oc(id).hex);
+    const mesh = makeDog(oc(id).hex, isYou ? playerCfg : randomDogCfg());
     const home = HOMES[id];
     const spawn = spawnSpot(home);
     mesh.position.set(spawn.x, 0, spawn.z);
@@ -936,18 +1108,27 @@ function makeCar(){
   return g;
 }
 
-// put a car at the start of a random lane, heading across the map
+// Put a car at the start of a random lane, heading across the map.
+// The sidewalk plane overhangs the road by SW on each side, so the real asphalt is
+// only ROAD-2*SW wide. Two lanes fit inside that, and cars keep RIGHT.
+const ASPHALT = ROAD - 2*5;          // 8 units of actual driving surface
+const LANE_OFF = ASPHALT/4;          // centre of each of the two lanes (±2)
 function placeCar(car){
   const vertical = Math.random()<0.5;           // true = drives along z
   const lane = LANES[(Math.random()*LANES.length)|0];
   const dir  = Math.random()<0.5 ? 1 : -1;
-  const off  = dir * 4.5;                       // keep to its own side of the street
   const start = -dir * (HALF + 12);             // just off the map edge
   car.userData.vertical = vertical;
   car.userData.dir = dir;
   car.userData.wait = Math.random()*6;          // stagger so they don't convoy
-  if (vertical){ car.mesh.position.set(lane + off, 0, start); car.mesh.rotation.y = dir>0 ? 0 : Math.PI; }
-  else         { car.mesh.position.set(start, 0, lane - off); car.mesh.rotation.y = dir>0 ? Math.PI/2 : -Math.PI/2; }
+  // right-hand side of travel: facing +z right is -x; facing +x right is +z
+  if (vertical){
+    car.mesh.position.set(lane - dir*LANE_OFF, 0, start);
+    car.mesh.rotation.y = dir>0 ? 0 : Math.PI;
+  } else {
+    car.mesh.position.set(start, 0, lane + dir*LANE_OFF);
+    car.mesh.rotation.y = dir>0 ? Math.PI/2 : -Math.PI/2;
+  }
 }
 
 function spawnCars(){
@@ -1247,7 +1428,7 @@ function stepDog(dog,dt,owners){
       ud.ears[0].rotation.x = flap; ud.ears[1].rotation.x = flap;
     }
     // head bobs slightly while running
-    if (ud.head) ud.head.position.y = 1.35 + Math.abs(Math.sin(dog.walk*1.4))*0.06*running;
+    if (ud.head) ud.head.position.y = ud.headY0 + Math.abs(Math.sin(dog.walk*1.4))*0.06*running;
   }
 
   if (dog.id==='you'){
@@ -1341,6 +1522,13 @@ function updateVisuals(ow){
 
 function updateCamera(){
   const dog = dogs[0], p = dog.mesh.position;
+  if (creatorOpen){                      // slow turntable so you can see the whole dog
+    creatorSpin += 0.006;
+    const r = 3.1;
+    camera.position.set(p.x + Math.sin(creatorSpin)*r, p.y + 1.25, p.z + Math.cos(creatorSpin)*r);
+    camera.lookAt(p.x, p.y + 0.62, p.z);
+    return;
+  }
   const headY = 1.45;
   if (firstPerson){
     // first person already spins on the spot (camera sits on the axis)
@@ -1420,7 +1608,8 @@ function updateMinimap(owners){
 }
 
 function showOnly(which){
-  ['startOv','pauseOv','endOv'].forEach(id=> $(id).classList.toggle('hide', id!==which));
+  ['startOv','pauseOv','endOv','creatorOv'].forEach(id=> $(id).classList.toggle('hide', id!==which));
+  if (which!=='creatorOv') creatorOpen = false;
 }
 function endRound(){
   over=true; running=false;
@@ -1478,6 +1667,7 @@ function bindInput(){
     else if (bgm && bgm.paused && playlist.length) bgm.play().catch(()=>{});
   };
   $('startOv').addEventListener('click', requestPlay);
+  $('creatorOv').addEventListener('click', ()=>{ creatorOpen=false; showOnly('startOv'); });
   $('pauseOv').addEventListener('click', requestPlay);
   $('endOv').addEventListener('click', ()=>{ restart(); cv.requestPointerLock(); });
 
@@ -1674,12 +1864,87 @@ function initMusic(){
   paintTrackCount();
 }
 
+// ===================== CHARACTER CREATOR =====================
+let creatorOpen = false, creatorSpin = 0;
+
+function rebuildPlayerDog(){
+  const d = dogs[0]; if (!d) return;
+  const old = d.mesh;
+  const nu = makeDog(oc('you').hex, playerCfg);
+  nu.position.copy(old.position);
+  nu.rotation.y = old.rotation.y;
+  nu.scale.set(0.42,0.42,0.42);
+  scene.remove(old);
+  old.traverse(o=>{ if (o.geometry && o.geometry.dispose) o.geometry.dispose(); });
+  scene.add(nu);
+  d.mesh = nu;
+}
+
+function paintCreator(){
+  const c = playerCfg;
+  const set = (r,v,val,txt)=>{ const R=$(r); if(R) R.value=val; const V=$(v); if(V) V.textContent=txt; };
+  set('coatR','coatVal', c.coat, COAT_NAMES[c.coat]);
+  set('patchR','patchVal', c.patch, COAT_NAMES[c.patch]);
+  set('markR','markVal', c.mark, MARK_NAMES[c.mark]);
+  set('earR','earVal', c.ear, EAR_NAMES[c.ear]);
+  set('tailR','tailVal', c.tail, TAIL_NAMES[c.tail]);
+  set('snoutR','snoutVal', Math.round(c.snout*100), Math.round(c.snout*100)+'%');
+  set('buildR','buildVal', Math.round(c.build*100), Math.round(c.build*100)+'%');
+  set('legR','legVal', Math.round(c.legs*100), Math.round(c.legs*100)+'%');
+  set('sizeR','sizeVal', Math.round(c.size*100), Math.round(c.size*100)+'%');
+  $('dogCode').textContent = cfgToCode(c);
+  try { localStorage.setItem('bd_dog', cfgToCode(c)); } catch(e){}
+}
+
+function initCreator(){
+  // restore a saved dog
+  try { const saved = codeToCfg(localStorage.getItem('bd_dog')); if (saved) playerCfg = saved; } catch(e){}
+
+  const sel = $('presetSel');
+  sel.innerHTML = '<option value="">— presets —</option>' +
+    Object.keys(DOG_PRESETS).map(n=>`<option value="${DOG_PRESETS[n]}">${n}</option>`).join('');
+  sel.addEventListener('change', ()=>{
+    const c = codeToCfg(sel.value); if (c){ playerCfg=c; rebuildPlayerDog(); paintCreator(); }
+  });
+
+  const bind = (id, apply)=>{
+    const el = $(id); if (!el) return;
+    el.addEventListener('input', ()=>{ apply(parseFloat(el.value)); rebuildPlayerDog(); paintCreator(); });
+  };
+  bind('coatR',  v=> playerCfg.coat = v|0);
+  bind('patchR', v=> playerCfg.patch = v|0);
+  bind('markR',  v=> playerCfg.mark = v|0);
+  bind('earR',   v=> playerCfg.ear = v|0);
+  bind('tailR',  v=> playerCfg.tail = v|0);
+  bind('snoutR', v=> playerCfg.snout = v/100);
+  bind('buildR', v=> playerCfg.build = v/100);
+  bind('legR',   v=> playerCfg.legs = v/100);
+  bind('sizeR',  v=> playerCfg.size = v/100);
+
+  $('randBtn').addEventListener('click', e=>{ e.stopPropagation();
+    playerCfg = randomDogCfg(); rebuildPlayerDog(); paintCreator(); });
+  $('loadBtn').addEventListener('click', e=>{ e.stopPropagation();
+    const c = codeToCfg($('codeIn').value);
+    if (c){ playerCfg=c; rebuildPlayerDog(); paintCreator(); $('codeIn').value=''; }
+    else toast('that code did not parse — expecting 9 numbers separated by dots');
+  });
+  $('openCreator').addEventListener('click', e=>{
+    e.stopPropagation(); creatorOpen = true; creatorSpin = 0; showOnly('creatorOv'); paintCreator();
+  });
+  $('crDone').addEventListener('click', e=>{
+    e.stopPropagation(); creatorOpen = false; showOnly('startOv');
+  });
+  rebuildPlayerDog();
+  paintCreator();
+}
+
 function boot(){
   initThree();
   buildChips();
   bindInput();
   initSettings();
   applyGraphics();
+  initCreator();
   initMusic();
   applyDifficulty();
   dogs[0].mesh.visible = true;
