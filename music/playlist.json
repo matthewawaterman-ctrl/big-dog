@@ -1,6 +1,6 @@
 [
-  { "file": "jungle-mission.mp3",          "title": "Jungle Mission",          "artist": "Matt Waterman" },
-  { "file": "elephant-stampede-power.mp3", "title": "Elephant Stampede Power", "artist": "Matt Waterman" },
   { "file": "the-reason-cover.mp3",        "title": "The Reason Cover",        "artist": "Matt Waterman" },
-  { "file": "among-the-birches.mp3",       "title": "Among The Birches",       "artist": "Matt Waterman" }
+  { "file": "jungle-mission.mp3",          "title": "Jungle Mission",          "artist": "Matt Waterman" },
+  { "file": "among-the-birches.mp3",       "title": "Among The Birches",       "artist": "Matt Waterman" },
+  { "file": "elephant-stampede-power.mp3", "title": "Elephant Stampede Power", "artist": "Matt Waterman" }
 ]
