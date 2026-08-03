@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-035">
+<meta name="build" content="bd-041">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -38,7 +38,7 @@
   .lbl{font-size:11px;letter-spacing:1px;opacity:.85}
   .meter{width:200px;height:16px;border-radius:8px;background:rgba(0,0,0,.45);
     border:1px solid rgba(255,255,255,.2);overflow:hidden}
-  .meter>i{display:block;height:100%;width:60%;background:#9b5cff;transition:width .08s linear}
+  .meter>i{display:block;height:100%;width:60%;background:#d63fb8;transition:width .08s linear}
   #poop{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:#6b3f22;
     position:relative;overflow:hidden}
   #poop.empty{background:#2a2f36}
@@ -70,6 +70,33 @@
   .trackbtns button{font:inherit;font-size:12px;color:#0f0a1e;background:#ffd34d;border:0;
     border-radius:7px;padding:5px 12px;cursor:pointer;font-weight:bold}
   .trackbtns button:hover{background:#fff0a8}
+  #howOv{justify-content:center;background:rgba(7,5,15,.93)}
+  .howstage{display:flex;flex-direction:column;align-items:center;gap:18px;max-width:640px;cursor:default}
+  .howart{width:340px;height:170px;position:relative;background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.10);border-radius:14px;overflow:hidden}
+  .howtext{text-align:center;font-size:15px;line-height:1.55;min-height:86px;padding:0 14px}
+  .howtext b{display:block;color:#ffd34d;font-size:19px;margin-bottom:7px;letter-spacing:1px}
+  .howrow{display:flex;gap:16px;align-items:center;margin-top:20px;cursor:default}
+  .howrow button{font:inherit;font-size:14px;background:#ffd34d;color:#0f0a1e;border:0;
+    border-radius:9px;padding:8px 16px;cursor:pointer;font-weight:bold}
+  .howrow button:disabled{opacity:.32;cursor:default}
+  .howdots{display:flex;gap:7px}
+  .howdots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.28);display:block}
+  .howdots i.on{background:#ffd34d}
+  /* --- illustration primitives, all CSS so nothing extra loads --- */
+  .hobj{position:absolute;border-radius:50%;transition:none}
+  .hbar{position:absolute;height:13px;border-radius:7px;background:rgba(255,255,255,.14);overflow:hidden}
+  .hbar i{display:block;height:100%;width:0}
+  .hlabel{position:absolute;font-size:11px;opacity:.75}
+  @keyframes fillUp{0%{width:0}60%{width:100%}100%{width:100%}}
+  @keyframes fadeOut{0%{width:100%;opacity:1}100%{width:12%;opacity:.5}}
+  @keyframes washOut{0%{width:100%}45%{width:0}100%{width:0}}
+  @keyframes washIn{0%{width:0}45%{width:0}100%{width:100%}}
+  @keyframes popIn{0%{transform:scale(0);opacity:0}70%{transform:scale(1.25)}100%{transform:scale(1);opacity:1}}
+  @keyframes trot{0%{left:6%}100%{left:62%}}
+  @keyframes blockWin{0%{background:rgba(255,255,255,.10)}100%{background:var(--c)}}
+  @keyframes drip{0%{transform:translateY(0);opacity:1}100%{transform:translateY(46px);opacity:0}}
+  @keyframes pulseRing{0%,100%{box-shadow:0 0 0 0 rgba(255,211,77,.55)}50%{box-shadow:0 0 0 11px rgba(255,211,77,0)}}
   #creatorOv{justify-content:flex-end;padding-bottom:28px;background:linear-gradient(180deg,rgba(7,5,15,0) 0%,rgba(7,5,15,0) 34%,rgba(7,5,15,.82) 60%,rgba(7,5,15,.94) 100%)}
   .crtitle{font-size:22px;font-weight:bold;letter-spacing:2px;color:#ffd34d;margin-bottom:12px}
   .crgrid{display:grid;grid-template-columns:repeat(4,minmax(130px,175px));gap:9px 20px;
@@ -101,7 +128,7 @@
     background:rgba(7,5,15,.74);text-align:center;cursor:pointer;padding:24px}
   .ov.hide{display:none}
   .ov h1{font-size:clamp(40px,9vw,64px);margin:0 0 4px;letter-spacing:3px;
-    background:linear-gradient(90deg,#ffd34d,#ff7eb3,#9b5cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+    background:linear-gradient(90deg,#ffd34d,#ff7eb3,#d63fb8);-webkit-background-clip:text;background-clip:text;color:transparent}
   .ov .tag{opacity:.85;margin:0 0 18px;font-size:15px}
   .ov p{margin:5px 0;opacity:.92;max-width:560px;line-height:1.5}
   .keys{margin-top:14px;font-size:13px;opacity:.85;line-height:1.95}
@@ -162,6 +189,19 @@
 </div>
 
 <!-- ===== overlays ===== -->
+<div class="ov hide" id="howOv">
+  <div class="crtitle">HOW TO PLAY</div>
+  <div class="howstage" onclick="event.stopPropagation()">
+    <div class="howart" id="howArt"></div>
+    <div class="howtext"><b id="howHead"></b><span id="howBody"></span></div>
+  </div>
+  <div class="howrow" onclick="event.stopPropagation()">
+    <button type="button" id="howPrev">&#9664; back</button>
+    <div class="howdots" id="howDots"></div>
+    <button type="button" id="howNext">next &#9654;</button>
+  </div>
+  <div class="cta" id="howDone">got it</div>
+</div>
 <div class="ov hide" id="creatorOv">
   <div class="crtitle">DESIGN YOUR DOG</div>
   <div class="crgrid" onclick="event.stopPropagation()">
@@ -193,14 +233,6 @@
 </div>
 <div class="ov" id="startOv">
   <h1>BIG&nbsp;DOG</h1>
-  <p class="tag">Run the block. Mark your turf. Out-claim the strays before the buzzer.</p>
-  <p>Hold to pee and claim objects. <b>How long you hold decides how long the mark lasts</b> —
-     a quick tap fades in seconds, a full mark just outlives the round. Marks fade back to
-     neutral over time, so early turf won't survive unless you commit to it. To take someone
-     else's object you must first wash it out, which costs exactly what they paid for it.
-     <b>Poop it and it's yours for good — no fade, no steal.</b><br>
-     <b>Own the most stuff on a block and the whole block turns your color — most blocks at the buzzer wins.</b>
-     Run low and you must trot home to refuel — get caught empty in enemy turf and you're vulnerable.</p>
   <div class="keys">
     <b>↑ ↓</b> walk &nbsp;·&nbsp; <b>← →</b> turn (hold both to curve) &nbsp;·&nbsp; <b>Shift</b> sprint<br>
     hold <b>⌘ Cmd</b> (or <b>Ctrl</b>) + arrows to look around &nbsp;·&nbsp; <b>C</b> 1st/3rd person<br>
@@ -208,6 +240,8 @@
   </div>
   <p class="tag" style="margin-top:14px;opacity:.7">Trackpad isn't used — it's all keyboard.</p>
   <div class="settings" onclick="event.stopPropagation()">
+    <label>round length <span class="val" id="rtVal"></span>
+      <input type="range" id="rtRange" min="1" max="60" step="1"></label>
     <label>graphics <span class="val" id="gfxVal"></span>
       <input type="range" id="gfxRange" min="0" max="2" step="1"></label>
     <label>difficulty <span class="val" id="diffVal"></span>
@@ -225,6 +259,7 @@
         <span class="trackbtns"><button type="button" id="prevBtn">◀ prev</button><button type="button" id="nextBtn">next ▶</button></span></label>
     </div>
   </div>
+  <div class="cta" id="openHow" style="margin-bottom:10px">&#128218; how to play</div>
   <div class="cta" id="openCreator" style="margin-bottom:10px">&#128054; design your dog</div>
   <div class="cta">Click to play</div>
   <div class="buildline">build <b id="buildLabel"></b></div>
@@ -234,6 +269,8 @@
   <h1>Paused</h1>
   <p class="tag">Click to get back out there.</p>
   <div class="settings" onclick="event.stopPropagation()">
+    <label>round length <span class="val" id="rtVal2"></span>
+      <input type="range" id="rtRange2" min="1" max="60" step="1"></label>
     <label>graphics <span class="val" id="gfxVal2"></span>
       <input type="range" id="gfxRange2" min="0" max="2" step="1"></label>
     <label>difficulty <span class="val" id="diffVal2"></span>
@@ -313,9 +350,10 @@ function applyDifficulty(){
 }
 
 const TUNE = {
-  ROUND_TIME: 120,   // sec
+  ROUND_TIME: 300,   // sec — set by the round-length slider (default 5 min)
   FILL: 25,          // claim/sec while peeing on own/neutral object
-  DECAY: 0.78,       // claim/sec bled from owned turf, all the way to neutral.
+  DECAY: 0.31,       // claim/sec bled from owned turf, all the way to neutral.
+                     // Recomputed from ROUND_TIME by setRoundTime() — see below.
                      // a 4s full mark lasts ~128s (just past the buzzer); a quick tap
                      // evaporates in seconds, so drive-by marking earns you nothing.
   ERODE: 25,         // claim/sec stripped from an enemy object — matches FILL, so taking
@@ -332,6 +370,7 @@ const TUNE = {
   SPRINT: 1.7,
   VULN_SPEED: 0.55,
   TURN: 1.5,         // rad/sec — heading turn rate (player-adjustable in settings)
+  SWIM: 0.52,        // speed multiplier while wading through a pond
   PEE_TURN: 0.35,    // turn-rate multiplier while marking — pivot slowly, don't walk
   TURN_WALK: 1.9,    // turn-rate multiplier while walking — carve tight corners on the move
   CAR_COUNT: 4,      // cars cruising the streets at once
@@ -363,26 +402,31 @@ const HEDGE_H = 1.5;                // hedge height — low enough to hurdle, hi
 
 // each dog's home is a real subdivision house — the top-edge middle house of a block.
 // you: centre block · red: back-left block · orange: front-right block
-const HOME_BLOCK = { you:[1,1], ai1:[0,0], ai2:[2,2] };
+const TEAMS = ['you','ai1','ai2','ai3'];      // single source of truth for team count
+const HOME_BLOCK = { you:[1,1], ai1:[0,0], ai2:[2,2], ai3:[0,2] };
 const YARD_BACK = 16;   // how far behind the house the refuel pad sits (toward block centre)
 // the house itself (for the flag / minimap marker)
 const HOME_HOUSE = {
   you: { x: (HOME_BLOCK.you[0]-1)*B, z: (HOME_BLOCK.you[1]-1)*B + HOUSE_FRONT },
   ai1: { x: (HOME_BLOCK.ai1[0]-1)*B, z: (HOME_BLOCK.ai1[1]-1)*B + HOUSE_FRONT },
   ai2: { x: (HOME_BLOCK.ai2[0]-1)*B, z: (HOME_BLOCK.ai2[1]-1)*B + HOUSE_FRONT },
+  ai3: { x: (HOME_BLOCK.ai3[0]-1)*B, z: (HOME_BLOCK.ai3[1]-1)*B + HOUSE_FRONT },
 };
 // the actual refuel station: doghouse + food/water bowls in that house's BACK yard
 const HOMES = {
   you: { x: HOME_HOUSE.you.x, z: HOME_HOUSE.you.z - YARD_BACK },
   ai1: { x: HOME_HOUSE.ai1.x, z: HOME_HOUSE.ai1.z - YARD_BACK },
   ai2: { x: HOME_HOUSE.ai2.x, z: HOME_HOUSE.ai2.z - YARD_BACK },
+  ai3: { x: HOME_HOUSE.ai3.x, z: HOME_HOUSE.ai3.z - YARD_BACK },
 };
-const houseBoxes = [];        // AABBs for collision, filled while building the subdivision
+const houseBoxes = [];
+const ponds = [];             // {x,z,r} — passable, but they slow you to a wade        // AABBs for collision, filled while building the subdivision
 
 const OWNER = {
-  you:  { hex: 0x9b5cff, css: '#9b5cff', name: 'YOU' },
+  you:  { hex: 0xd63fb8, css: '#d63fb8', name: 'YOU' },
   ai1:  { hex: 0x00e08a, css: '#00e08a', name: 'GREEN' },
   ai2:  { hex: 0xffa733, css: '#ffa733', name: 'ORANGE' },
+  ai3:  { hex: 0x1a75ff, css: '#1a75ff', name: 'BLUE' },
   none: { hex: 0x8a949e, css: '#8a949e', name: 'OPEN' },
 };
 const oc = id => OWNER[id || 'none'];
@@ -397,6 +441,16 @@ function blockIndexAt(x,z){
 }
 
 let scene, camera, renderer, clock;
+// Round length drives the decay rate. The design is "a full mark just outlives the
+// round" — so a fixed decay would evaporate everything in a 5-minute game and leave a
+// 60-minute game permanently marked. Scale it, with a floor so long rounds still churn.
+function setRoundTime(mins){
+  const wasFull = (timeLeft === TUNE.ROUND_TIME);
+  TUNE.ROUND_TIME = Math.round(clamp(mins,1,60) * 60);
+  TUNE.DECAY = clamp(100 / (TUNE.ROUND_TIME * 1.07), 0.25, 2.0);
+  if (wasFull) timeLeft = TUNE.ROUND_TIME;      // clock not started yet -> follow the slider
+}
+
 let dogs = [], objects = [], tiles = [], poops = [], cars = [];
 let prevOwners = new Array(9).fill(null);
 let fpsFrames = 0, fpsAccum = 0;
@@ -507,7 +561,7 @@ function buildWorld(){
 
   // Refuel station in each home's back yard: a doghouse with a food + water bowl.
   // Small pad, so you have to actually get to the bowls rather than just near the house.
-  for (const id of ['you','ai1','ai2']){
+  for (const id of TEAMS){
     const h = HOMES[id], col = oc(id).hex;
     const ring = new THREE.Mesh(new THREE.RingGeometry(TUNE.HOME_R-0.7, TUNE.HOME_R, 40),
       new THREE.MeshBasicMaterial({ color:col, transparent:true, opacity:0.75, side:THREE.DoubleSide }));
@@ -834,9 +888,45 @@ function buildObjects(){
         if (j<3) hedge(hx - sx*22, cz+(j-1)*step, 26, 0.8);
       }
     }
+
+    // ---- the block interior: a little park so the middle isn't dead grass ----
+    // One pond (passable, slows you to a wade) plus scattered markable greenery.
+    const IX = 40, IZ = 38;                      // clear interior half-extents
+    const pond = { x: cx + (Math.random()-0.5)*26, z: cz + (Math.random()-0.5)*22,
+                   r: 13 + Math.random()*6 };
+    ponds.push(pond);
+    const clearOf = (x,z,pad)=>{
+      if (Math.hypot(x-pond.x, z-pond.z) < pond.r + pad) return false;
+      if (inHouse(x,z,0)) return false;
+      for (const id of TEAMS){                   // keep the refuel stations clear
+        const h = HOMES[id];
+        if (Math.hypot(x-h.x, z-h.z) < TUNE.HOME_R + 6) return false;
+      }
+      return true;
+    };
+    const parkTypes = ['tree','tree','bush','bush','fence'];
+    let placed = 0, guard = 0;
+    while (placed < 7 && guard++ < 80){
+      const px = cx + (Math.random()-0.5)*2*IX;
+      const pz = cz + (Math.random()-0.5)*2*IZ;
+      if (!clearOf(px, pz, 5)) continue;
+      const t = parkTypes[(Math.random()*parkTypes.length)|0];
+      placeMark(px, pz, blk, t, Math.random()*Math.PI*2);
+      // greenery is solid, but low enough to hurdle
+      const rr = MARK_TYPES[t].r;
+      houseBoxes.push({ x0:px-rr, x1:px+rr, z0:pz-rr, z1:pz+rr, top: t==='tree' ? 999 : 1.3 });
+      placed++;
+    }
+    // a few cattails at the water's edge, purely decorative
+    for (let i=0;i<5;i++){
+      const a = Math.random()*Math.PI*2, rr = pond.r + 1.5 + Math.random()*2;
+      emitParts([['cyl',0x6f8f4a, 0,0.9,0, 0, 0.16,1.8,0.16]],
+                pond.x + Math.cos(a)*rr, pond.z + Math.sin(a)*rr, 0);
+    }
   }
   buildInstances();          // collapse the queued houses/hedges into a few draw calls
-  buildMarkers();            // 3 shared ownership-marker batches
+  buildMarkers();            // shared ownership-marker batches
+  buildPonds();              // water surfaces for the park ponds
 }
 
 // ===================== DOG BUILDER =====================
@@ -909,7 +999,8 @@ const BREEDS = {
 };
 const DOG_PRESETS = BREEDS;
 // default breed per team: you = medium, green = large, orange = small
-const TEAM_BREED = { you:'Retriever (medium)', ai1:'Shepherd (large)', ai2:'Corgi (small)' };
+const TEAM_BREED = { you:'Retriever (medium)', ai1:'Shepherd (large)',
+                     ai2:'Corgi (small)', ai3:'Hound (medium)' };
 
 function makeDog(teamHex, cfg){
   cfg = Object.assign(defaultDogCfg(), cfg || {});
@@ -1295,28 +1386,28 @@ function toast(msg){
 // Runs every frame. It used to allocate 10 objects + an array per call (~600
 // objects/sec of garbage), which is what produced the periodic GC frame dips.
 // Now it writes into preallocated arrays and allocates nothing.
-const _accYou = new Float32Array(9), _accA1 = new Float32Array(9), _accA2 = new Float32Array(9);
+const _acc = {};                                   // per-team weight per block
+for (const _t of TEAMS) _acc[_t] = new Float32Array(9);
 const _ownersOut = new Array(9).fill(null);
 function blockOwners(){
-  _accYou.fill(0); _accA1.fill(0); _accA2.fill(0);
+  for (let i=0;i<TEAMS.length;i++) _acc[TEAMS[i]].fill(0);
   for (let i=0;i<objects.length;i++){
     const o = objects[i];
-    if (!o.owner) continue;
-    if (o.owner==='you') _accYou[o.block] += o.weight;
-    else if (o.owner==='ai1') _accA1[o.block] += o.weight;
-    else _accA2[o.block] += o.weight;
+    if (o.owner) _acc[o.owner][o.block] += o.weight;
   }
   for (let b=0;b<9;b++){
-    const y=_accYou[b], a=_accA1[b], c=_accA2[b];
     let best=null, bv=0, tie=false;
-    if (y>bv){ bv=y; best='you'; }
-    if (a>bv){ bv=a; best='ai1'; tie=false; } else if (a===bv && bv>0) tie=true;
-    if (c>bv){ bv=c; best='ai2'; tie=false; } else if (c===bv && bv>0) tie=true;
+    for (let i=0;i<TEAMS.length;i++){
+      const v = _acc[TEAMS[i]][b];
+      if (v>bv){ bv=v; best=TEAMS[i]; tie=false; }
+      else if (v===bv && bv>0) tie=true;
+    }
     _ownersOut[b] = (bv>0 && !tie) ? best : null;
   }
   return _ownersOut;
 }
-function tally(owners){ const t={you:0,ai1:0,ai2:0,none:0}; for(const o of owners) t[o||'none']++; return t; }
+function tally(owners){ const t={none:0}; for(const k of TEAMS) t[k]=0;
+  for(const o of owners) t[o||'none']++; return t; }
 
 function aiThink(dog,dt){
   const ai=dog.ai, k=D(); ai.think-=dt;
@@ -1429,11 +1520,16 @@ function stepDog(dog,dt,owners){
       if (k.sprint && m > 40) sprint = true;
     }
   }
+  // wading state is evaluated every frame, not just while moving, so standing
+  // in the water still reads correctly
+  dog.wading = inPond(p.x, p.z) && (dog.y||0) <= 0.02;
+
   const mag = Math.hypot(mx,mz);
   let moved=0;
   if (mag>0){
     mx/=mag; mz/=mag;
-    const spd = TUNE.SPEED*(dog.mSpd||1)*(sprint?TUNE.SPRINT:1)*(dog.vulnerable?TUNE.VULN_SPEED:1);
+    const spd = TUNE.SPEED*(dog.mSpd||1)*(sprint?TUNE.SPRINT:1)
+              *(dog.vulnerable?TUNE.VULN_SPEED:1)*(dog.wading?TUNE.SWIM:1);
     const ox=p.x, oz=p.z;
     const fy = dog.y || 0;                              // feet height (jumping)
     let nx = clamp(ox + mx*spd*dt, -BOUND, BOUND);
@@ -1467,7 +1563,7 @@ function stepDog(dog,dt,owners){
   dog.y = dog.y || 0; dog.vy = dog.vy || 0;
   const grounded = dog.y <= 0.0001;
   if (dog.id === 'you'){
-    if (jumpQueued && grounded && dog.daze<=0){ dog.vy = TUNE.JUMP_V; dog.y = 0.001; }
+    if (jumpQueued && grounded && dog.daze<=0 && !dog.wading){ dog.vy = TUNE.JUMP_V; dog.y = 0.001; }
     jumpQueued = false;          // one hop per press — holding D does nothing
   } else if (grounded && dog.blocked && Math.random() < 0.06){
     dog.vy = TUNE.JUMP_V; dog.y = 0.001;              // AI hops a hedge it's stuck on
@@ -1512,6 +1608,10 @@ function stepDog(dog,dt,owners){
   const sw = Math.sin(dog.walk*1.4);
   const running = moved>0 ? 1 : 0;
   dog.mesh.position.y = Math.abs(sw)*0.16*running*(airborne?0:1) + dog.y;   // bob on ground, arc in air
+  if (dog.wading){                                   // body sits low in the water, paddling
+    dog.mesh.position.y -= 0.34;
+    dog.mesh.position.y += Math.sin(now*3.2)*0.04;
+  }
   dog.legLift = (dog.legLift||0) + (((dog.peeing?1:0) - (dog.legLift||0)) * Math.min(1, dt*6.5));
   // squat eases in fast, out slow (poop stance)
   if (dog.squatT>0) dog.squatT = Math.max(0, dog.squatT - dt);
@@ -1580,9 +1680,33 @@ function edgeMat(id){
 // Up to ~500 objects can be owned at once; this draws them in 3 calls.
 const markMeshes = {};
 const _tintTmp = new THREE.Color();
+// Ponds: a sunken basin with a translucent surface. Nothing blocks movement here —
+// you wade through at roughly half speed, which makes them a shortcut you pay for.
+function buildPonds(){
+  const waterMat = new THREE.MeshLambertMaterial({ color:0x3f86b8, transparent:true, opacity:0.78 });
+  const bedMat   = new THREE.MeshLambertMaterial({ color:0x4a4636 });
+  for (const p of ponds){
+    const bed = new THREE.Mesh(new THREE.CylinderGeometry(p.r*0.97, p.r*0.72, 1.1, 20), bedMat);
+    bed.position.set(p.x, -0.56, p.z); bed.receiveShadow = true; scene.add(bed);
+    const bank = new THREE.Mesh(new THREE.RingGeometry(p.r, p.r+2.2, 24),
+      new THREE.MeshLambertMaterial({ color:0x8f8256 }));
+    bank.rotation.x = -Math.PI/2; bank.position.set(p.x, 0.02, p.z); scene.add(bank);
+    const water = new THREE.Mesh(new THREE.CircleGeometry(p.r, 24), waterMat);
+    water.rotation.x = -Math.PI/2; water.position.set(p.x, 0.10, p.z); scene.add(water);
+  }
+}
+function inPond(x,z){
+  for (let i=0;i<ponds.length;i++){
+    const p = ponds[i];
+    const dx = x-p.x, dz = z-p.z;
+    if (dx*dx + dz*dz < p.r*p.r) return true;
+  }
+  return false;
+}
+
 function buildMarkers(){
   const geo = new THREE.CircleGeometry(1,12);
-  for (const id of ['you','ai1','ai2']){
+  for (const id of TEAMS){
     const m = new THREE.InstancedMesh(geo,
       new THREE.MeshBasicMaterial({ color:oc(id).hex, transparent:true, opacity:0.62, side:THREE.DoubleSide }),
       objects.length);
@@ -1594,7 +1718,7 @@ const _mM = new THREE.Matrix4(), _mQ = new THREE.Quaternion(),
       _mE = new THREE.Euler(-Math.PI/2,0,0), _mV = new THREE.Vector3(), _mS = new THREE.Vector3();
 function updateMarkers3D(){
   _mQ.setFromEuler(_mE);
-  const n = { you:0, ai1:0, ai2:0 };
+  const n = {}; for (const k of TEAMS) n[k]=0;
   const now = performance.now();
   for (const o of objects){
     if (!o.owner) continue;
@@ -1606,7 +1730,7 @@ function updateMarkers3D(){
     _mM.compose(_mV,_mQ,_mS);
     im.setMatrixAt(n[o.owner]++, _mM);
   }
-  for (const id of ['you','ai1','ai2']){
+  for (const id of TEAMS){
     const im = markMeshes[id];
     im.count = n[id];
     im.instanceMatrix.needsUpdate = true;
@@ -1618,7 +1742,7 @@ function updateVisuals(ow){
   updateMarkers3D();
   // block tint only rewrites when ownership flips
   const pulse = 0.62 + 0.38*Math.abs(Math.sin(now*0.004));
-  for (const id of ['you','ai1','ai2']) if (EDGE_MATS[id]) EDGE_MATS[id].opacity = pulse;
+  for (const id of TEAMS) if (EDGE_MATS[id]) EDGE_MATS[id].opacity = pulse;
   tiles.forEach((t,i)=>{
     if (t._ow === ow[i]) return;
     t._ow = ow[i];
@@ -1674,7 +1798,7 @@ function updateCamera(){
 const $ = id => document.getElementById(id);
 function buildChips(){
   $('chips').innerHTML='';
-  ['you','ai1','ai2'].forEach(k=>{
+  TEAMS.forEach(k=>{
     const el=document.createElement('div'); el.className='chip'; el.style.background=oc(k).css;
     el.id='chip_'+k; el.textContent=oc(k).name+' 0'; $('chips').appendChild(el);
   });
@@ -1683,7 +1807,7 @@ function updateHUD(owners){
   const t = tally(owners);
   const mm = Math.floor(timeLeft/60), ss = String(Math.floor(timeLeft%60)).padStart(2,'0');
   $('timer').textContent = mm+':'+ss;
-  ['you','ai1','ai2'].forEach(k=> $('chip_'+k).textContent = oc(k).name+' '+t[k]);
+  TEAMS.forEach(k=> $('chip_'+k).textContent = oc(k).name+' '+t[k]);
   const you = dogs[0];
   $('bladder').style.width = (you.bladder/TUNE.BLADDER_MAX*100)+'%';
   $('poop').className = you.poop>0 ? '' : 'empty';
@@ -1729,7 +1853,7 @@ function updateMinimap(owners){
   }
   const tx = x => (x+HALF)/(HALF*2)*W, tz = z => (z+HALF)/(HALF*2)*W;
   // each house as a small colored square (outlined)
-  for (const id of ['you','ai1','ai2']){
+  for (const id of TEAMS){
     const h = HOMES[id];
     mctx.fillStyle = oc(id).css;
     mctx.fillRect(tx(h.x)-4, tz(h.z)-4, 8, 8);
@@ -1744,7 +1868,7 @@ function updateMinimap(owners){
 }
 
 function showOnly(which){
-  ['startOv','pauseOv','endOv','creatorOv'].forEach(id=> $(id).classList.toggle('hide', id!==which));
+  ['startOv','pauseOv','endOv','creatorOv','howOv'].forEach(id=> $(id).classList.toggle('hide', id!==which));
   if (which!=='creatorOv') creatorOpen = false;
 }
 function endRound(){
@@ -1752,14 +1876,14 @@ function endRound(){
   const ow = blockOwners(); const t = tally(ow);
   let win='you', wv=t.you;
   if (t.ai1>wv){win='ai1';wv=t.ai1;} if (t.ai2>wv){win='ai2';wv=t.ai2;}
-  const tieTop = ['you','ai1','ai2'].filter(k=>t[k]===wv).length>1;
+  const tieTop = TEAMS.filter(k=>t[k]===wv).length>1;
   lastResult = { t, win, tie: tieTop&&wv>0 };
   const bigDog = lastResult.tie ? 'NOBODY' : (win==='you' ? 'YOU' : oc(win).name);
   $('endTitle').innerHTML = 'AND THE BIG DOG IS&hellip;';
   $('bigdog').textContent = bigDog + (lastResult.tie ? ' — dead heat' : ' 🐕');
   $('bigdog').style.color = lastResult.tie ? '#e8e8ea' : oc(win).css;
   const bd = $('bigdog'); bd.style.animation='none'; void bd.offsetWidth; bd.style.animation='';
-  $('endSub').textContent = `blocks — YOU ${t.you} · ${oc('ai1').name} ${t.ai1} · ${oc('ai2').name} ${t.ai2} · open ${t.none}`;
+  $('endSub').textContent = 'blocks — ' + TEAMS.map(k=>oc(k).name+' '+t[k]).join(' · ') + ' · open ' + t.none;
   $('endstats').innerHTML =
     `objects fully marked: <b>${stats.marks}</b><br>`+
     `enemy turf contested: <b>${stats.contests}</b><br>`+
@@ -1923,6 +2047,10 @@ function initSettings(){
   wire(['turnRange','turnRange2'],['turnVal','turnVal2'],'bd_turn', ()=>TUNE.TURN, x=>TUNE.TURN=x, x=>x.toFixed(1));
   wire(['camRange','camRange2'],['camVal','camVal2'],'bd_cam', ()=>TUNE.CAM_FOLLOW, x=>TUNE.CAM_FOLLOW=x, x=>Math.round(x));
   wire(['volRange','volRange2'],['volVal','volVal2'],'bd_vol', ()=>musicVol, x=>setMusicVol(x), x=>Math.round(x*100)+'%');
+  wire(['rtRange','rtRange2'],['rtVal','rtVal2'],'bd_round',
+       ()=>TUNE.ROUND_TIME/60,
+       x=>setRoundTime(x),
+       x=>x<60 ? x+' min' : '1 hour');
   wire(['gfxRange','gfxRange2'],['gfxVal','gfxVal2'],'bd_gfx',
        ()=>GFX_KEYS.indexOf(graphics),
        x=>{ graphics = GFX_KEYS[clamp(x|0,0,2)]; applyGraphics(); },
@@ -2126,6 +2254,79 @@ function initPlayerCfg(){
   playerCfg = saved || codeToCfg(BREEDS['Retriever (medium)']) || defaultDogCfg();
 }
 
+// ===================== HOW TO PLAY CAROUSEL =====================
+// Each slide draws its own little animated diagram out of plain divs — no images,
+// no extra requests. Replaces the wall of text that used to sit on the start screen.
+let howIx = 0;
+const HOW = [
+  { head:'MARK YOUR TURF',
+    body:'Hold <b>Space</b> next to an object to pee on it. That object becomes yours, and its ground marker turns your colour. You stop moving while you mark, so pick your moment.',
+    art:()=>`<div class="hobj" style="left:38px;top:96px;width:26px;height:26px;background:${oc('you').css};animation:popIn .5s .7s both"></div>
+             <div class="hobj" style="left:44px;top:60px;width:8px;height:8px;background:#ffe98a;animation:drip .8s .55s 3 both"></div>
+             <div class="hlabel" style="left:34px;top:130px">object</div>
+             <div class="hobj" style="left:210px;top:44px;width:52px;height:52px;background:${oc('you').css};opacity:.9;animation:popIn .5s 1.1s both"></div>
+             <div class="hlabel" style="left:198px;top:104px">now yours</div>` },
+  { head:'HOLD LONGER, KEEP IT LONGER',
+    body:'How long you hold decides how long the mark survives. A quick tap fades within seconds. A full four-second mark lasts the longest the round allows.',
+    art:()=>`<div class="hlabel" style="left:20px;top:34px">quick tap</div>
+             <div class="hbar" style="left:20px;top:52px;width:290px"><i style="background:${oc('you').css};animation:fillUp .5s both, fadeOut 1.4s .5s both"></i></div>
+             <div class="hlabel" style="left:20px;top:96px">full mark</div>
+             <div class="hbar" style="left:20px;top:114px;width:290px"><i style="background:${oc('you').css};animation:fillUp 1.6s both"></i></div>` },
+  { head:'EVERYTHING FADES',
+    body:'Marks bleed back to neutral over time. Turf you grabbed early will not survive to the buzzer unless you committed to it — so late marks matter more than early ones.',
+    art:()=>`<div class="hbar" style="left:20px;top:74px;width:290px"><i style="background:${oc('you').css};animation:fadeOut 2.4s infinite both"></i></div>
+             <div class="hlabel" style="left:20px;top:52px">your claim, over time</div>
+             <div class="hlabel" style="left:262px;top:98px">neutral</div>` },
+  { head:'STEALING COSTS FULL PRICE',
+    body:"To take someone else's object you must first wash their mark out — which costs exactly what they paid to put it there. Then you still have to claim it yourself.",
+    art:()=>`<div class="hbar" style="left:20px;top:64px;width:290px"><i style="background:${oc('ai1').css};animation:washOut 2.6s infinite both"></i></div>
+             <div class="hlabel" style="left:20px;top:42px">their mark washing out</div>
+             <div class="hbar" style="left:20px;top:114px;width:290px"><i style="background:${oc('you').css};animation:washIn 2.6s infinite both"></i></div>
+             <div class="hlabel" style="left:20px;top:92px">then yours goes on</div>` },
+  { head:'POOP IS PERMANENT',
+    body:'Press <b>D</b> to spend your one poop charge. That object is sealed to you for the rest of the round — it never fades and nobody can steal it. Reload by standing at your food bowl for 9 seconds.',
+    art:()=>`<div class="hobj" style="left:140px;top:56px;width:58px;height:58px;background:${oc('you').css};animation:pulseRing 1.8s infinite"></div>
+             <div class="hlabel" style="left:132px;top:124px">sealed &#128274;</div>` },
+  { head:'BLOCKS WIN THE GAME',
+    body:'Own the most stuff on a block and the whole block turns your colour. <b>Most blocks at the buzzer wins</b> — not most objects. Spreading across blocks beats saturating one.',
+    art:()=>{ const c=[oc('you').css,oc('you').css,oc('ai1').css,oc('ai2').css,oc('you').css,'rgba(255,255,255,.10)',
+                       oc('ai3').css,oc('you').css,oc('ai1').css];
+      return c.map((col,i)=>`<div style="position:absolute;left:${104+(i%3)*46}px;top:${22+((i/3)|0)*46}px;
+        width:40px;height:40px;border-radius:6px;--c:${col};
+        animation:blockWin .5s ${0.12*i}s both"></div>`).join(''); } },
+  { head:'REFUEL AT HOME',
+    body:'Peeing drains your bladder. Run dry and a GPS arrow points you back to your bowls — water refills fast, a poop charge takes 9 seconds. Caught empty in enemy turf and you are vulnerable.',
+    art:()=>`<div class="hlabel" style="left:20px;top:40px">bladder</div>
+             <div class="hbar" style="left:20px;top:58px;width:290px"><i style="background:#7fc4ff;animation:fillUp 1.1s infinite both"></i></div>
+             <div class="hlabel" style="left:20px;top:96px">food (poop charge)</div>
+             <div class="hbar" style="left:20px;top:114px;width:290px"><i style="background:#9a6a3a;animation:fillUp 2.6s infinite both"></i></div>` },
+  { head:'CONTROLS',
+    body:'Move with the <b>arrow keys</b> or <b>L</b> left, <b>&#39;</b> right, <b>P</b> up, <b>;</b> down.<br><b>Space</b> pee &nbsp;·&nbsp; <b>D</b> poop &nbsp;·&nbsp; <b>F</b> jump &nbsp;·&nbsp; <b>C</b> camera &nbsp;·&nbsp; <b>M</b> mute &nbsp;·&nbsp; <b>,</b> <b>.</b> change track',
+    art:()=>`<div class="hobj" style="top:70px;width:30px;height:30px;background:${oc('you').css};animation:trot 1.9s infinite alternate ease-in-out"></div>
+             <div class="hlabel" style="left:20px;top:126px">arrows / L &#39; P ;</div>` },
+];
+
+function paintHow(){
+  const sl = HOW[howIx];
+  $('howHead').innerHTML = sl.head;
+  $('howBody').innerHTML = sl.body;
+  $('howArt').innerHTML = sl.art();          // re-inserting restarts the CSS animations
+  $('howDots').innerHTML = HOW.map((_,i)=>`<i class="${i===howIx?'on':''}"></i>`).join('');
+  $('howPrev').disabled = howIx===0;
+  $('howNext').textContent = howIx===HOW.length-1 ? 'start over' : 'next \u25b6';
+}
+function howGo(d){
+  howIx = (howIx + d + HOW.length) % HOW.length;
+  paintHow();
+}
+function initHow(){
+  $('openHow').addEventListener('click', e=>{ e.stopPropagation(); howIx=0; showOnly('howOv'); paintHow(); });
+  $('howDone').addEventListener('click', e=>{ e.stopPropagation(); showOnly('startOv'); });
+  $('howOv').addEventListener('click', ()=> showOnly('startOv'));
+  $('howPrev').addEventListener('click', e=>{ e.stopPropagation(); howGo(-1); });
+  $('howNext').addEventListener('click', e=>{ e.stopPropagation(); howGo(1); });
+}
+
 function boot(){
   initPlayerCfg();          // must run before buildWorld/spawnDogs reads playerCfg
   initThree();
@@ -2134,6 +2335,7 @@ function boot(){
   initSettings();
   applyGraphics();
   initCreator();
+  initHow();
   initMusic();
   applyDifficulty();
   dogs[0].mesh.visible = true;
@@ -2147,9 +2349,9 @@ function boot(){
   // off the play session. This is the "#2" from earlier.
   try {
     renderer.compile(scene, camera);
-    for (const id of ['you','ai1','ai2']) if (markMeshes[id]) markMeshes[id].count = 1;
+    for (const id of TEAMS) if (markMeshes[id]) markMeshes[id].count = 1;
     renderer.render(scene, camera);
-    for (const id of ['you','ai1','ai2']) if (markMeshes[id]) markMeshes[id].count = 0;
+    for (const id of TEAMS) if (markMeshes[id]) markMeshes[id].count = 0;
   } catch(e){}
 
   startUpdateWatch();
