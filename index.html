@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-041">
+<meta name="build" content="bd-045">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -111,6 +111,31 @@
   .crcode{margin-top:12px;font-size:15px;opacity:.9}
   .crcode b{color:#ffd34d;font-size:18px;letter-spacing:1px;background:rgba(255,211,77,.12);
     padding:4px 12px;border-radius:8px}
+  body.touch #ctrls,body.touch #viewtag{display:none}          /* keyboard hints are noise on a tablet */
+  body.touch .ov{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 12px;
+    background:#0d0a1a}                                    /* fully opaque — no bleed-through */
+  body.touch .keys{display:none}                            /* keyboard-only reference, irrelevant on touch */
+  body.touch .touchhelp{display:block !important}
+  body.touch .settings input[type=range]{height:30px}
+  body.touch .crgrid input[type=range]{height:28px}
+  #tpad{position:absolute;inset:0;pointer-events:none;z-index:40;touch-action:none}
+  #tpad.hide{display:none}
+  #stick{position:absolute;left:26px;bottom:26px;width:168px;height:168px;border-radius:50%;
+    background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.22);pointer-events:auto;
+    touch-action:none}
+  #stickNub{position:absolute;left:50%;top:50%;width:70px;height:70px;margin:-35px 0 0 -35px;
+    border-radius:50%;background:rgba(255,211,77,.72);box-shadow:0 2px 10px rgba(0,0,0,.4)}
+  #tbtns{position:absolute;right:24px;bottom:24px;display:flex;align-items:flex-end;gap:14px;
+    pointer-events:none}
+  .tb{pointer-events:auto;font:inherit;font-weight:bold;border:0;color:#0f0a1e;background:#ffd34d;
+    border-radius:50%;width:86px;height:86px;font-size:15px;touch-action:none;
+    box-shadow:0 3px 12px rgba(0,0,0,.4);-webkit-user-select:none;user-select:none}
+  .tb:active{filter:brightness(.82)}
+  .tb.tbig{width:120px;height:120px;font-size:20px;background:#ffe27a}
+  .tb.tsm{position:absolute;width:56px;height:56px;font-size:13px;background:rgba(255,255,255,.18);
+    color:#fff;box-shadow:none}
+  #tbPause{top:64px;right:24px}
+  #tbView{top:64px;right:92px}
   #fps{position:absolute;left:16px;top:34px;font-size:13px;opacity:.6;color:#9fe6b0}
   #toast{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font-size:18px;color:#ffd34d;
     background:rgba(7,5,15,.72);border:1px solid rgba(255,211,77,.4);border-radius:10px;padding:8px 18px;
@@ -179,6 +204,16 @@
   <canvas id="mini" width="300" height="300"></canvas>
   <div id="viewtag">3rd person · press C</div>
   <div id="ctrls"><b>Space</b> pee · <b>D</b> poop · <b>F</b> jump · <b>C</b> view · <b>M</b> mute · <b>,</b>/<b>.</b> track &nbsp;|&nbsp; move: <b>&larr;&uarr;&darr;&rarr;</b> or <b>L P ; '</b></div>
+  <div id="tpad" class="hide">
+    <div id="stick"><i id="stickNub"></i></div>
+    <div id="tbtns">
+      <button class="tb" id="tbJump">JUMP</button>
+      <button class="tb" id="tbPoop">POOP</button>
+      <button class="tb tbig" id="tbPee">PEE</button>
+    </div>
+    <button class="tb tsm" id="tbPause">II</button>
+    <button class="tb tsm" id="tbView">CAM</button>
+  </div>
   <div id="toast"></div>
   <div id="eating"></div>
   <div id="nowplaying"></div>
@@ -233,6 +268,7 @@
 </div>
 <div class="ov" id="startOv">
   <h1>BIG&nbsp;DOG</h1>
+  <p class="tag touchhelp" style="display:none;margin:6px 0 2px">Drag the stick to move &nbsp;·&nbsp; tap <b>PEE</b>/<b>POOP</b>/<b>JUMP</b> &nbsp;·&nbsp; <b>CAM</b> toggles view</p>
   <div class="keys">
     <b>↑ ↓</b> walk &nbsp;·&nbsp; <b>← →</b> turn (hold both to curve) &nbsp;·&nbsp; <b>Shift</b> sprint<br>
     hold <b>⌘ Cmd</b> (or <b>Ctrl</b>) + arrows to look around &nbsp;·&nbsp; <b>C</b> 1st/3rd person<br>
@@ -261,7 +297,7 @@
   </div>
   <div class="cta" id="openHow" style="margin-bottom:10px">&#128218; how to play</div>
   <div class="cta" id="openCreator" style="margin-bottom:10px">&#128054; design your dog</div>
-  <div class="cta">Click to play</div>
+  <div class="cta" id="playCta">Click to play</div>
   <div class="buildline">build <b id="buildLabel"></b></div>
 </div>
 
@@ -458,6 +494,9 @@ let jumpQueued = false;
 let playerCfg = null;   // resolved in initPlayerCfg(); BREEDS isn't initialised yet here
 let frameOwners = null;
 let yaw = 0, pitch = 0.12, camYaw = 0, camFollowYaw = 0, playerFwd = 0, firstPerson = false;
+// Touch/tablet input. iPadOS has no pointer lock, so play is gated on a flag instead.
+const IS_TOUCH = (('ontouchstart' in window) || navigator.maxTouchPoints > 1);
+const touch = { active:false, fwd:0, turn:0, stickId:null, cx:0, cy:0 };
 const PITCH_DEFAULT = 0.12;
 const BUILD = (document.querySelector('meta[name="build"]') || {}).content || 'dev';
 let timeLeft = TUNE.ROUND_TIME, running = false, over = false, lastResult = null;
@@ -483,8 +522,12 @@ function initThree(){
   renderer.shadowMap.type = THREE.PCFShadowMap;              // PCFSoft is markedly more expensive
   document.getElementById('game').appendChild(renderer.domElement);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x4a5a44, 0.95));
-  const sun = new THREE.DirectionalLight(0xfff2dc, 0.9);
+  // Total light was 0.95 + 0.9 = 1.85x, which clipped every channel on lit surfaces.
+  // Clipping destroys hue — a dusty mauve block turned into hot pink and the grass
+  // went fluorescent. 0.66 + 0.54 = 1.20x is the brightest that never clips any of
+  // the four team tints over grass.
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x4a5a44, 0.66));
+  const sun = new THREE.DirectionalLight(0xfff2dc, 0.54);
   sun.position.set(120, 190, 90);
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
@@ -575,7 +618,18 @@ function buildWorld(){
     kr.position.y=3.4; kr.rotation.y=Math.PI/4; kennel.add(kr);
     const kd = new THREE.Mesh(new THREE.BoxGeometry(1.3,1.7,0.2), new THREE.MeshLambertMaterial({color:0x160e07}));
     kd.position.set(0,0.85,1.82); kennel.add(kd);
-    kennel.position.set(h.x, 0, h.z - 3.6); scene.add(kennel);
+    const kx = h.x, kz = h.z - 3.6;
+    kennel.position.set(kx, 0, kz); scene.add(kennel);
+    // Solid walls with a real doorway — the kennel had NO collision at all, so you
+    // could stroll through it. Five boxes form a U plus a split front, leaving a
+    // 1.4-wide door you can duck inside.
+    const KW = 1.70, KD = 1.80, TH = 0.45, DOOR = 0.70;
+    [[kx-KW, kx+KW, kz-KD,      kz-KD+TH],     // back wall
+     [kx-KW, kx-KW+TH, kz-KD,   kz+KD],        // left wall
+     [kx+KW-TH, kx+KW, kz-KD,   kz+KD],        // right wall
+     [kx-KW, kx-DOOR, kz+KD-TH, kz+KD],        // front, left of the door
+     [kx+DOOR, kx+KW, kz+KD-TH, kz+KD],        // front, right of the door
+    ].forEach(([x0,x1,z0,z1])=> houseBoxes.push({ x0, x1, z0, z1, top:999 }));
 
     // bowls: blue = water (bladder), brown = food (poop charge)
     const bowl = (bx2,bz2,c)=>{
@@ -904,9 +958,9 @@ function buildObjects(){
       }
       return true;
     };
-    const parkTypes = ['tree','tree','bush','bush','fence'];
+    const parkTypes = ['tree','tree','tree','tree','bush','bush','fence'];
     let placed = 0, guard = 0;
-    while (placed < 7 && guard++ < 80){
+    while (placed < 13 && guard++ < 160){
       const px = cx + (Math.random()-0.5)*2*IX;
       const pz = cz + (Math.random()-0.5)*2*IZ;
       if (!clearOf(px, pz, 5)) continue;
@@ -1482,11 +1536,15 @@ function stepDog(dog,dt,owners){
       // Peeing plants the dog: you can't walk while marking, but you may still
       // pivot slowly to line up the next target before you let go.
       const marking = !!keys[' '];
-      const fwd = marking ? 0 : (U?1:0) - (Dn?1:0);
+      // Axes are analog so a touch thumbstick can feed them directly; the keyboard
+      // just supplies -1 / 0 / +1.
+      let axF = (U?1:0) - (Dn?1:0);
+      let axT = (L?1:0) - (R?1:0);
+      if (touch.active){ axF = touch.fwd; axT = touch.turn; }
+      const fwd = marking ? 0 : axF;
       const tr = marking ? TUNE.TURN*TUNE.PEE_TURN
-                         : TUNE.TURN * (fwd!==0 ? TUNE.TURN_WALK : 1);
-      if (L) yaw += tr*dt;                 // turn left
-      if (R) yaw -= tr*dt;                 // turn right
+                         : TUNE.TURN * (Math.abs(fwd)>0.05 ? TUNE.TURN_WALK : 1);
+      yaw += axT * tr * dt;                // +1 = left, -1 = right
       playerFwd = fwd;
       mx = Math.sin(yaw)*fwd; mz = Math.cos(yaw)*fwd;
       // ease the view back behind the dog when not actively looking
@@ -1616,7 +1674,8 @@ function stepDog(dog,dt,owners){
   // squat eases in fast, out slow (poop stance)
   if (dog.squatT>0) dog.squatT = Math.max(0, dog.squatT - dt);
   dog.squat = (dog.squat||0) + (((dog.squatT>0?1:0) - (dog.squat||0)) * Math.min(1, dt*8));
-  dog.mesh.rotation.x = -0.42*dog.squat + (dog.y>0.02 ? clamp(-dog.vy*0.05,-0.35,0.35) : 0);
+  dog.mesh.rotation.x = -0.42*dog.squat + (dog.y>0.02 ? clamp(-dog.vy*0.05,-0.35,0.35) : 0)
+                      + (dog.wading ? -0.14 : 0);              // nose rides up in the water
   dog.mesh.position.y += 0.12*dog.squat;
   const ud = dog.mesh.userData;
   if (ud.legs){
@@ -1636,11 +1695,22 @@ function stepDog(dog,dt,owners){
     // whole dog settles into the stance: weight shifts off the lifted leg
     dog.mesh.rotation.z = -dog.peeSide*lift*0.16;
     dog.mesh.position.y -= lift*0.06;                            // slight crouch
+
+    // ---- doggy paddle: legs churn under the chest in a rolling four-beat ----
+    if (dog.wading){
+      dog.paddle = (dog.paddle||0) + dt*7.5;
+      ud.legs.forEach((L,i)=>{
+        const ph = dog.paddle - i*(Math.PI/2);                   // legs cycle in sequence
+        L.rotation.x = -0.55 + Math.sin(ph)*0.80;                // tucked forward, churning
+        L.rotation.z = Math.cos(ph)*0.12;                        // slight outward scoop
+      });
+    } else dog.paddle = 0;
     // tail: wags when happy, flags straight up in the squat
     const wagSpeed = 6 + running*6 + dog.legLift*6;
     ud.tail.rotation.y = Math.sin(now*wagSpeed)*0.6*(1-dog.squat)*(1-lift*0.55);
     ud.tail.rotation.z = dog.peeSide*lift*0.45;                  // tail swings clear of the stream
-    ud.tail.rotation.x = -dog.squat*0.9 - lift*0.45;             // and lifts
+    ud.tail.rotation.x = -dog.squat*0.9 - lift*0.45
+                       + (dog.wading ? 0.55 : 0);                // tail trails flat behind
     // ears bounce a touch while trotting
     if (ud.ears){
       const flap = Math.sin(dog.walk*1.4)*0.25*running;
@@ -1869,9 +1939,20 @@ function updateMinimap(owners){
 
 function showOnly(which){
   ['startOv','pauseOv','endOv','creatorOv','howOv'].forEach(id=> $(id).classList.toggle('hide', id!==which));
+  // The gameplay HUD (timer/chips/minimap/meters) was never hidden behind menus —
+  // it just showed through the overlay's translucent background. Harmless on a wide
+  // desktop screen where the HUD sits in small corners, but on a narrow phone the
+  // menu content stacks tall enough to sit right on top of it, producing a ghosted
+  // double-exposure look. Hide it outright whenever a menu is up.
+  $('hud').style.visibility = which ? 'hidden' : 'visible';
+  if (IS_TOUCH){
+    if (which) { running = false; touchPlaying = false; }
+    paintTouchPad();
+  }
   if (which!=='creatorOv') creatorOpen = false;
 }
 function endRound(){
+  if (IS_TOUCH){ touchPlaying=false; running=false; }
   over=true; running=false;
   const ow = blockOwners(); const t = tally(ow);
   let win='you', wv=t.you;
@@ -1924,7 +2005,10 @@ function bindInput(){
   const cv = renderer.domElement;
   const requestPlay = ()=>{
     if (over) return;
-    cv.requestPointerLock();
+    if (IS_TOUCH){
+      touchPlaying = true;                 // no Pointer Lock on iPadOS — gate on this
+      running = true; showOnly(null); paintTouchPad();
+    } else cv.requestPointerLock();
     // browsers block audio until a user gesture — this click is it
     if (playlist.length && trackIx < 0) playTrack(0);
     else if (bgm && bgm.paused && playlist.length) bgm.play().catch(()=>{});
@@ -1932,9 +2016,12 @@ function bindInput(){
   $('startOv').addEventListener('click', requestPlay);
   $('creatorOv').addEventListener('click', ()=>{ if (creatorOpen) closeCreator(); });
   $('pauseOv').addEventListener('click', requestPlay);
-  $('endOv').addEventListener('click', ()=>{ restart(); cv.requestPointerLock(); });
+  $('endOv').addEventListener('click', ()=>{ restart();
+    if (IS_TOUCH){ touchPlaying=true; running=true; showOnly(null); paintTouchPad(); }
+    else cv.requestPointerLock(); });
 
   document.addEventListener('pointerlockchange', ()=>{
+    if (IS_TOUCH) return;                  // touch play isn't driven by pointer lock
     running = (document.pointerLockElement===cv) && !over;
     if (running) showOnly(null);
     else { for (const kk in keys) keys[kk]=false; if (!over) showOnly('pauseOv'); }
@@ -2327,6 +2414,76 @@ function initHow(){
   $('howNext').addEventListener('click', e=>{ e.stopPropagation(); howGo(1); });
 }
 
+// ===================== TOUCH CONTROLS (iPad / tablet) =====================
+// iPadOS has no Pointer Lock API, so the desktop start path (click -> lock cursor)
+// can never fire. On touch devices `running` is driven by an explicit flag instead,
+// and an on-screen stick + buttons feed the same analog axes the keyboard uses.
+let touchPlaying = false;
+
+function initTouch(){
+  if (!IS_TOUCH) return;
+  document.body.classList.add('touch');
+  $('playCta').textContent = 'Tap to play';
+  $('tpad').classList.remove('hide');
+
+  // stop iOS rubber-band scroll and double-tap zoom over the canvas
+  document.addEventListener('touchmove', e=>{ if (e.touches.length) e.preventDefault(); }, {passive:false});
+  document.addEventListener('gesturestart', e=> e.preventDefault());
+
+  // ---- thumbstick ----
+  const pad = $('stick'), nub = $('stickNub');
+  const R = 62;                                   // travel radius in px
+  const setNub = (dx,dy)=>{ nub.style.transform = `translate(${dx}px,${dy}px)`; };
+  const release = ()=>{ touch.stickId=null; touch.fwd=0; touch.turn=0; setNub(0,0); };
+  const grab = (t)=>{
+    const r = pad.getBoundingClientRect();
+    touch.cx = r.left + r.width/2; touch.cy = r.top + r.height/2;
+    touch.stickId = t.identifier;
+  };
+  const move = (t)=>{
+    let dx = t.clientX - touch.cx, dy = t.clientY - touch.cy;
+    const m = Math.hypot(dx,dy);
+    if (m > R){ dx = dx/m*R; dy = dy/m*R; }
+    setNub(dx,dy);
+    const dead = 0.16;
+    const nx = dx/R, ny = dy/R;
+    // up on the stick = forward, left = turn left
+    touch.fwd  = Math.abs(ny)<dead ? 0 : -(ny - Math.sign(ny)*dead)/(1-dead);
+    touch.turn = Math.abs(nx)<dead ? 0 : -(nx - Math.sign(nx)*dead)/(1-dead);
+  };
+  pad.addEventListener('touchstart', e=>{ e.preventDefault(); grab(e.changedTouches[0]); move(e.changedTouches[0]); }, {passive:false});
+  pad.addEventListener('touchmove', e=>{
+    e.preventDefault();
+    for (const t of e.changedTouches) if (t.identifier===touch.stickId) move(t);
+  }, {passive:false});
+  const end = e=>{ for (const t of e.changedTouches) if (t.identifier===touch.stickId) release(); };
+  pad.addEventListener('touchend', end); pad.addEventListener('touchcancel', end);
+
+  // ---- action buttons: mapped onto the same keys the keyboard sets ----
+  const hold = (id, onDown, onUp)=>{
+    const el = $(id);
+    el.addEventListener('touchstart', e=>{ e.preventDefault(); e.stopPropagation(); onDown(); }, {passive:false});
+    el.addEventListener('touchend',   e=>{ e.preventDefault(); e.stopPropagation(); if(onUp) onUp(); }, {passive:false});
+    el.addEventListener('touchcancel',()=>{ if(onUp) onUp(); });
+  };
+  hold('tbPee',  ()=>{ keys[' ']=true; }, ()=>{ keys[' ']=false; });
+  hold('tbPoop', ()=>{ if (running) tryPoop(dogs[0]); });
+  hold('tbJump', ()=>{ jumpQueued = true; });
+  hold('tbView', ()=>{ firstPerson = !firstPerson; });
+  hold('tbPause',()=>{ touchPlaying = false; running = false;
+                       for (const k in keys) keys[k]=false; touch.fwd=0; touch.turn=0;
+                       if (!over) showOnly('pauseOv'); });
+
+  // touch devices are usually fill-rate bound — start on the cheap tier
+  try { if (localStorage.getItem('bd_gfx')===null){ graphics='low'; applyGraphics(); } } catch(e){}
+}
+
+// shows/hides the pad so it never covers the menus
+function paintTouchPad(){
+  if (!IS_TOUCH) return;
+  $('tpad').classList.toggle('hide', !running);
+}
+
 function boot(){
   initPlayerCfg();          // must run before buildWorld/spawnDogs reads playerCfg
   initThree();
@@ -2336,6 +2493,7 @@ function boot(){
   applyGraphics();
   initCreator();
   initHow();
+  initTouch();
   initMusic();
   applyDifficulty();
   dogs[0].mesh.visible = true;
