@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="build" content="bd-045">
+<meta name="build" content="bd-046">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBhdGggZD0iTTE0IDE3IFE1IDMwIDEyIDQ3IFEyMSA0MyAyMyAyOSBaIiBmaWxsPSIjN2E1MjMwIi8+CiAgPHBhdGggZD0iTTUwIDE3IFE1OSAzMCA1MiA0NyBRNDMgNDMgNDEgMjkgWiIgZmlsbD0iIzdhNTIzMCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzMiIHI9IjE5IiBmaWxsPSIjYmQ4YTUyIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iNDMiIHJ4PSIxMi41IiByeT0iOS41IiBmaWxsPSIjZWNkNmFjIi8+CiAgPGNpcmNsZSBjeD0iMjQiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGNpcmNsZSBjeD0iNDAiIGN5PSIzMCIgcj0iMy4zIiBmaWxsPSIjMjQxYTEwIi8+CiAgPGVsbGlwc2UgY3g9IjMyIiBjeT0iMzkuNSIgcng9IjQuNCIgcnk9IjMuMyIgZmlsbD0iIzI0MWExMCIvPgogIDxwYXRoIGQ9Ik0zMiA0Mi41IFEzMiA0OC41IDI3IDQ5LjUgTTMyIDQyLjUgUTMyIDQ4LjUgMzcgNDkuNSIgc3Ryb2tlPSIjMjQxYTEwIiBzdHJva2Utd2lkdGg9IjEuNyIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=">
 <title>BIG DOG</title>
 <style>
@@ -136,6 +136,16 @@
     color:#fff;box-shadow:none}
   #tbPause{top:64px;right:24px}
   #tbView{top:64px;right:92px}
+  /* Phones: the minimap sizes itself for a wide desktop HUD and eats the whole
+     top-right corner, so CAM/II collided with it. Move them to the left side and
+     shrink the minimap so both fit without overlapping. */
+  body.touch #tbPause{top:14px;left:14px;right:auto}
+  body.touch #tbView{top:14px;left:78px;right:auto}
+  body.touch #mini{width:120px !important;height:120px !important}
+  body.touch .bottom{bottom:210px !important;left:50% !important;transform:translateX(-50%);
+    background:rgba(7,5,15,.55);padding:6px 14px;border-radius:12px}
+  body.touch .meter{width:140px}
+  body.touch .lbl{font-size:11px}
   #fps{position:absolute;left:16px;top:34px;font-size:13px;opacity:.6;color:#9fe6b0}
   #toast{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);font-size:18px;color:#ffd34d;
     background:rgba(7,5,15,.72);border:1px solid rgba(255,211,77,.4);border-radius:10px;padding:8px 18px;
@@ -496,7 +506,7 @@ let frameOwners = null;
 let yaw = 0, pitch = 0.12, camYaw = 0, camFollowYaw = 0, playerFwd = 0, firstPerson = false;
 // Touch/tablet input. iPadOS has no pointer lock, so play is gated on a flag instead.
 const IS_TOUCH = (('ontouchstart' in window) || navigator.maxTouchPoints > 1);
-const touch = { active:false, fwd:0, turn:0, stickId:null, cx:0, cy:0 };
+const touch = { fwd:0, turn:0, stickId:null, cx:0, cy:0 };
 const PITCH_DEFAULT = 0.12;
 const BUILD = (document.querySelector('meta[name="build"]') || {}).content || 'dev';
 let timeLeft = TUNE.ROUND_TIME, running = false, over = false, lastResult = null;
@@ -1540,7 +1550,7 @@ function stepDog(dog,dt,owners){
       // just supplies -1 / 0 / +1.
       let axF = (U?1:0) - (Dn?1:0);
       let axT = (L?1:0) - (R?1:0);
-      if (touch.active){ axF = touch.fwd; axT = touch.turn; }
+      if (touch.stickId !== null){ axF = touch.fwd; axT = touch.turn; }
       const fwd = marking ? 0 : axF;
       const tr = marking ? TUNE.TURN*TUNE.PEE_TURN
                          : TUNE.TURN * (Math.abs(fwd)>0.05 ? TUNE.TURN_WALK : 1);
